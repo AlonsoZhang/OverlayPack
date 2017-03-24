@@ -8,10 +8,10 @@
 
 #import <Cocoa/Cocoa.h>
 
-@protocol DoSomethingDelegate
--(void)doSomething:(NSArray *)files;
+@protocol DragShowStationDelegate
+-(void)dragShowStation:(NSArray *)files;
 @end
 
 @interface ViewDropper : NSView
-@property (nonatomic, weak) id<DoSomethingDelegate> delegate;
+@property (nonatomic, weak) id<DragShowStationDelegate> delegate;
 @end

@@ -23,5 +23,10 @@
     // Insert code here to tear down your application
 }
 
+#pragma mark NSApplication Delegate Methods
+-(BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)sender
+{
+    return YES;
+}
 
 @end

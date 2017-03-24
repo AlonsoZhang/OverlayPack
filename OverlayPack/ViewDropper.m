@@ -23,53 +23,42 @@
 
 #pragma GCC diagnostic ignored "-Wundeclared-selector"
 - (BOOL)performDragOperation:(id < NSDraggingInfo >)sender {
-    NSLog(@"performDragOperation in TableViewDropper.h");
-    
+    NSLog(@"performDragOperation");
     NSPasteboard *pboard = [sender draggingPasteboard];
     NSArray *filenames = [pboard propertyListForType:NSFilenamesPboardType];
-    
-    id delegate = [self delegate];
-    [delegate doSomething:filenames];
-    
-    highlight=NO;
+    [[self delegate] dragShowStation:filenames];
+    highlight = NO;
     [self setNeedsDisplay: YES];
     return YES;
 }
 
-
 - (BOOL)prepareForDragOperation:(id)sender {
-    NSLog(@"prepareForDragOperation called in TableViewDropper.h");
     return YES;
 }
 
-
 - (NSDragOperation)draggingEntered:(id <NSDraggingInfo>)sender
 {
-    if (highlight==NO) {
-        NSLog(@"drag entered in TableViewDropper.h");
-        highlight=YES;
+    if (highlight == NO) {
+        NSLog(@"drag entered");
+        highlight = YES;
         [self setNeedsDisplay: YES];
     }
-    
     return NSDragOperationCopy;
 }
 
 - (void)draggingExited:(id)sender
 {
-    highlight=NO;
-    
+    highlight = NO;
     [self setNeedsDisplay: YES];
-    NSLog(@"drag exit in TableViewDropper.h");
+    NSLog(@"drag exit");
 }
 
 -(void)drawRect:(NSRect)rect
 {
     [super drawRect:rect];
-    
     if ( highlight ) {
-        //highlight by overlaying a gray border
-        [[NSColor greenColor] set];
-        [NSBezierPath setDefaultLineWidth: 18];
+        [[NSColor blueColor] set];
+        [NSBezierPath setDefaultLineWidth: 15];
         [NSBezierPath strokeRect: rect];
     }
 }

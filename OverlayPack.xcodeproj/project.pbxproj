@@ -63,11 +63,9 @@
 				E2DEDB341E8368BE009E0416 /* AppDelegate.m */,
 				E2DEDB391E8368BE009E0416 /* ViewController.h */,
 				E2DEDB3A1E8368BE009E0416 /* ViewController.m */,
-				E2DEDB3C1E8368BE009E0416 /* Assets.xcassets */,
 				E2DEDB3E1E8368BE009E0416 /* Main.storyboard */,
 				E2DEDB4A1E83B341009E0416 /* ViewDropper.h */,
 				E2DEDB4B1E83B341009E0416 /* ViewDropper.m */,
-				E2DEDB411E8368BE009E0416 /* Info.plist */,
 				E2DEDB361E8368BE009E0416 /* Supporting Files */,
 			);
 			path = OverlayPack;
@@ -76,6 +74,8 @@
 		E2DEDB361E8368BE009E0416 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				E2DEDB3C1E8368BE009E0416 /* Assets.xcassets */,
+				E2DEDB411E8368BE009E0416 /* Info.plist */,
 				E2DEDB371E8368BE009E0416 /* main.m */,
 			);
 			name = "Supporting Files";
