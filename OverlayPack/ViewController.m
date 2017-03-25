@@ -22,6 +22,7 @@
     if ([files count] > 1) {
         [self ShowMessage:@"Please only drag one file!" Error:true];
     }else{
+        StationArray = [[NSMutableArray alloc] init];
         appPath = [[NSString alloc]init];
         appPath = files[0];
         NSArray * dealdata = [appPath componentsSeparatedByString:@"/"];
@@ -53,12 +54,14 @@
                                        includingPropertiesForKeys:@[]
                                                           options:0
                                                             error:nil];
+        if ([contents count] == 0) {
+            [self ShowMessage:@"Nothing in this file!" Error:true];
+        }
         for (NSURL *fileURL in contents)
         {
             if ([[fileURL absoluteString]containsString:@"main.plist"] ) {
                 NSMutableDictionary *mainplist = [[NSMutableDictionary alloc] initWithContentsOfFile:[[fileURL absoluteString]substringFromIndex:7]];
                 NSDictionary *stationtype = [mainplist objectForKey:@"StationType"];
-                StationArray = [[NSMutableArray alloc] init];
                 for (NSString * stationname in stationtype) {
                     for (NSURL *stationplisturl in contents) {
                         if ([[stationplisturl absoluteString]containsString:[stationtype objectForKey:stationname]])
@@ -77,9 +80,12 @@
                 NSArray *sortDescriptors = [NSArray arrayWithObject:sortDescriptor];
                 NSArray *sortedArray = [StationArray sortedArrayUsingDescriptors:sortDescriptors];
                 StationArray = [sortedArray mutableCopy];
-                [self.stationtv reloadData];
             }
         }
+        if ([StationArray count] == 0) {
+            [self ShowMessage:@"No main.plist in this file!" Error:true];
+        }
+        [self.stationtv reloadData];
     }
 }
 

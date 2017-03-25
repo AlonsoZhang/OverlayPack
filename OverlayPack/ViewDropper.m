@@ -37,7 +37,6 @@
 - (NSDragOperation)draggingEntered:(id <NSDraggingInfo>)sender
 {
     if (highlight == NO) {
-        NSLog(@"drag entered");
         highlight = YES;
         [self setNeedsDisplay: YES];
     }
@@ -48,7 +47,6 @@
 {
     highlight = NO;
     [self setNeedsDisplay: YES];
-    NSLog(@"drag exit");
 }
 
 -(void)drawRect:(NSRect)rect
