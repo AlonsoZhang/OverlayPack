@@ -13,17 +13,20 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     [[self stationtv]becomeFirstResponder];
+    randomfolderfm = [NSFileManager defaultManager];
+    desktoppaths = NSSearchPathForDirectoriesInDomains(NSDesktopDirectory, NSUserDomainMask, YES);
     self.viewDropper.delegate = self;
 }
 
 -(void)dragShowStation:(NSArray *)files {
     if ([files count] > 1) {
-        NSLog(@"please only drag one file!");
+        [self ShowMessage:@"Please only drag one file!" Error:true];
     }else{
-        NSLog(@" the file is : %@",files[0]);
-        
-        NSArray * dealdata = [files[0] componentsSeparatedByString:@"/"];
+        appPath = [[NSString alloc]init];
+        appPath = files[0];
+        NSArray * dealdata = [appPath componentsSeparatedByString:@"/"];
         if ([dealdata[dealdata.count-1] containsString:@"_AE"]) {
+            [self ShowMessage:@"Please select the station and click the ZIP icon." Error:false];
             
             //设置 Product Name，为 D21_AE_Mix 中"_"前的代号。
             NSArray * dealaedata = [dealdata[dealdata.count-1]componentsSeparatedByString:@"_"];
@@ -37,7 +40,7 @@
             //生成一个随机数
             self.randomCode.stringValue = [NSString stringWithFormat:@"%d", (arc4random() % 900) + 100];
         }else{
-            NSLog(@"error");
+            [self ShowMessage:@"Please drag correct file!" Error:true];
             return;
         }
 
@@ -78,7 +81,23 @@
             }
         }
     }
-    
+}
+
+- (void)ShowMessage:(NSString *)message Error:(BOOL)error{
+    self.showTextView.string = message;
+    if (error) {
+        self.showTextView.textColor = [NSColor redColor];
+    }else{
+        self.showTextView.textColor = [NSColor blueColor];
+    }
+}
+
+- (NSString *)RunCMD:(NSString *)CMD {
+    NSDictionary *error = [NSDictionary new];
+    NSString *script =  [NSString stringWithFormat:@"do shell script \"%@\"",CMD ];
+    NSAppleScript *appleScript = [[NSAppleScript new] initWithSource:script];
+    NSAppleEventDescriptor *des = [appleScript executeAndReturnError:&error];
+    return  des.stringValue;
 }
 
 - (void)setRepresentedObject:(id)representedObject {
@@ -125,6 +144,22 @@
     }
 }
 
+- (IBAction)selectall:(NSButton *)sender {
+    if ([StationArray count] == 0) {
+        self.selectbutton.stringValue = @"0";
+    }
+    if ([self.selectbutton.stringValue isEqualToString:@"1"]) {
+        for (NSMutableDictionary *stationname in StationArray) {
+            [stationname setObject:@"1" forKey:@"check"];
+        }
+    }else{
+        for (NSMutableDictionary *stationname in StationArray) {
+            [stationname setObject:@"0" forKey:@"check"];
+        }
+    }
+    [self.stationtv reloadData];
+}
+
 - (IBAction)package:(NSButton *)sender {
     NSMutableArray *choosenStation = [[NSMutableArray alloc]init];
     for (NSDictionary *stationname in StationArray) {
@@ -133,15 +168,76 @@
         }
     }
     if ([choosenStation count] > 0) {
+        
+        //创建桌面随机数文件夹
+        NSString *randomfolderpath = [NSString stringWithFormat:@"%@/%@",[desktoppaths objectAtIndex:0],self.randomCode.stringValue];
+        if([randomfolderfm createDirectoryAtPath:randomfolderpath withIntermediateDirectories:false attributes:nil error:nil])
+        {
+            NSLog(@"Creat %@ folder",self.randomCode.stringValue);
+        }
+        
+        //隐藏 contents 文件夹
+        [self RunCMD:[NSString stringWithFormat:@"chflags hidden %@/contents",appPath]];
+        
+        float i = 0;
         for (NSDictionary *needpackage in choosenStation) {
             NSString *packagename = [NSString stringWithFormat:@"%@_%@ %@",self.dataLabel.stringValue,self.productName.stringValue,[[needpackage objectForKey:@"title"]lowercaseString]];
             NSLog(@"%@",packagename);
+            
+            //创建 overlay 单独文件夹
+            NSString *overlaypath = [NSString stringWithFormat:@"%@/%@",randomfolderpath,packagename];
+            if([randomfolderfm createDirectoryAtPath:overlaypath withIntermediateDirectories:false attributes:nil error:nil])
+            {
+                //显示打包进度
+                i = i + 100.0/[choosenStation count];
+                [self ShowMessage:[NSString stringWithFormat:@"Overlay Packing Process: %.0f%%",i] Error:false];
+                
+                //将 bundle 中文件移到 overlay 文件夹中
+                [self RunCMD:[NSString stringWithFormat:@"cp -R %@/ %@",[[NSBundle mainBundle]pathForResource:@"overlay" ofType:nil],[self fit:overlaypath]]];
+                
+                //将 overlay app 复制到 /Users/gdlocal/Desktop 中
+                NSString * desktopPath = [overlaypath stringByAppendingString:@"/Users/gdlocal/Desktop"];
+                [self RunCMD:[NSString stringWithFormat:@"cp -R %@ %@",appPath,[self fit:desktopPath]]];
+                
+                //打包生成 overlay
+                [self RunCMD:[NSString stringWithFormat:@"ditto -cVvk --keepParent %@/ %@.zip",[self fit:overlaypath],[self fit:overlaypath]]];
+                
+                //删除原来 overlay folder
+                [self RunCMD:[NSString stringWithFormat:@"rm -rf %@",[self fit:overlaypath]]];
+            }
+        }
+        
+        //完成后打开文件夹
+        if (i > 99) {
+            [self RunCMD:[NSString stringWithFormat:@"open %@",randomfolderpath]];
         }
     }else{
-        NSLog(@"please choose one");
+        [self ShowMessage:@"Please choose one more station!" Error:true];
     }
 }
 
-- (IBAction)upload:(NSButton *)sender {
+- (NSString *)fit:(NSString *)path{
+    NSString *fitstring = [path stringByReplacingOccurrencesOfString:@" " withString:@"\\\\ "];
+    return fitstring;
 }
+
+- (IBAction)upload:(NSButton *)sender {
+    if (![self.randomCode.stringValue isEqualToString:@""]) {
+        NSString *randomfolderpath = [NSString stringWithFormat:@"%@/%@",[desktoppaths objectAtIndex:0],self.randomCode.stringValue];
+        if ([randomfolderfm fileExistsAtPath:randomfolderpath]) {
+            //将 randomfolder 压缩
+            [self RunCMD:[NSString stringWithFormat:@"ditto -cVvk --keepParent %@/ %@.zip",randomfolderpath,randomfolderpath]];
+            
+            //上传 zip 到 server
+            
+            //删除 randomfolder
+            [self RunCMD:[NSString stringWithFormat:@"rm -rf %@.zip",randomfolderpath]];
+        }else{
+            [self ShowMessage:[NSString stringWithFormat:@"%@ folder isn't on the desktop!",self.randomCode.stringValue] Error:true];
+        }
+    }else{
+        [self ShowMessage:@"No random folder on the desktop!" Error:true];
+    }
+}
+
 @end

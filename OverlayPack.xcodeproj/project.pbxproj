@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E27355841E854B6600DADE26 /* overlay in Resources */ = {isa = PBXBuildFile; fileRef = E27355831E854B6600DADE26 /* overlay */; };
 		E2DEDB351E8368BE009E0416 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = E2DEDB341E8368BE009E0416 /* AppDelegate.m */; };
 		E2DEDB381E8368BE009E0416 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = E2DEDB371E8368BE009E0416 /* main.m */; };
 		E2DEDB3B1E8368BE009E0416 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = E2DEDB3A1E8368BE009E0416 /* ViewController.m */; };
@@ -16,6 +17,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		E27355831E854B6600DADE26 /* overlay */ = {isa = PBXFileReference; lastKnownFileType = folder; path = overlay; sourceTree = "<group>"; };
 		E2DEDB301E8368BE009E0416 /* OverlayPack.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OverlayPack.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2DEDB331E8368BE009E0416 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		E2DEDB341E8368BE009E0416 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -66,6 +68,7 @@
 				E2DEDB3E1E8368BE009E0416 /* Main.storyboard */,
 				E2DEDB4A1E83B341009E0416 /* ViewDropper.h */,
 				E2DEDB4B1E83B341009E0416 /* ViewDropper.m */,
+				E27355831E854B6600DADE26 /* overlay */,
 				E2DEDB361E8368BE009E0416 /* Supporting Files */,
 			);
 			path = OverlayPack;
@@ -140,6 +143,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E27355841E854B6600DADE26 /* overlay in Resources */,
 				E2DEDB3D1E8368BE009E0416 /* Assets.xcassets in Resources */,
 				E2DEDB401E8368BE009E0416 /* Main.storyboard in Resources */,
 			);

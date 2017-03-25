@@ -10,17 +10,23 @@
 #import "ViewDropper.h"
 
 @interface ViewController : NSViewController<DragShowStationDelegate>{
+    NSFileManager *randomfolderfm;
+    NSString *appPath;
+    NSArray *desktoppaths;
     NSMutableArray *StationArray;
     BOOL checked;
 }
+@property (weak) IBOutlet NSButton *selectbutton;
 @property (strong) IBOutlet ViewDropper *viewDropper;
 @property (weak) IBOutlet NSTableView *stationtv;
 @property (weak) IBOutlet NSTextField *productName;
 @property (weak) IBOutlet NSTextField *dataLabel;
 @property (weak) IBOutlet NSTextField *randomCode;
-@property (weak) IBOutlet NSTextField *showTextfield;
+@property (unsafe_unretained) IBOutlet NSTextView *showTextView;
+
 - (IBAction)package:(NSButton *)sender;
 - (IBAction)upload:(NSButton *)sender;
+- (IBAction)selectall:(NSButton *)sender;
 
 
 @end

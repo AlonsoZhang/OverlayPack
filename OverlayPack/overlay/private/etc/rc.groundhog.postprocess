@@ -1,0 +1,83 @@
+#!/bin/sh
+
+#  This file is used to set up AE station environments after ground hog
+#   1, create AE station workspace folder.
+#   2, set up Ethernet IP address:169.254.0.10, and subnet address:255.255.255.0
+#   3, set share folder
+#   NOTE: this file's path is in the folder "/private/etc/"
+
+INST_DIR="/Users/gdlocal/Desktop"
+APP_NAME="D21_AE_Mix.app"
+LOGFILE="/var/log/installsms.log"
+
+#set the computer's usb ip,it run when the computer turn on
+#use 'networksetup' to set the ip
+
+Install_App()
+{
+	#start install**********
+	#Create share folder
+    mkdir -p /shared
+    mkdir -p /Users/gdlocal/Public/Workspace/tmpImages
+
+	# change mode and hide template folder
+	chmod -R 777 ${INST_DIR}/${APP_NAME}
+    chmod -R 777 /shared
+    chmod -R 777 /Users/gdlocal/Public/Workspace/tmpImages
+
+	# share Public folder
+    sharing -a /shared
+    sharing -a /Users/gdlocal/Public/Workspace/tmpImages
+	#sharing -e shared -n "gdlocal's Template Folder"
+	sharing -e shared -n "shared"
+    sharing -e tmpImages -n "tmpImages"
+    echo "\n\n\n[`date +'%Y-%m-%d %H:%M:%S'`] ${APP_NAME} share done" >> ${LOGFILE}
+}
+
+Start_SMB_Service()
+{
+	# copy start SMB server script to scripts folder, change user to root
+	cp /startSMBServer/smbStartUp /Library/Scripts/
+	chown root:wheel /Library/Scripts/smbStartUp 
+	
+	# copy SMB start up item
+	cp -R /startSMBServer/startSmbServer /Library/StartupItems/
+	
+	# start SMB server
+	launchctl load -F /System/Library/LaunchDaemons/com.apple.smbd.plist
+	
+	# pwpolicy -u gdlocal -sethashtypes SMB-NT off
+	pwpolicy -u gdlocal -sethashtypes SMB-NT on
+	dscl . -passwd /Users/gdlocal gdlocal
+
+    echo "\n\n\n[`date +'%Y-%m-%d %H:%M:%S'`] ${APP_NAME} start SMB service" >> ${LOGFILE}
+}
+
+Main()
+{
+	echo "\n\n\n[`date +'%Y-%m-%d %H:%M:%S'`] ${APP_NAME} install script startup." >> ${LOGFILE}
+    # app exist
+	if [ -e ${INST_DIR}/${APP_NAME} ]
+	then
+		echo "[`date +'%Y-%m-%d %H:%M:%S'`] ${APP_NAME} has been installed, install script exit." >> ${LOGFILE}
+
+		sudo networksetup -setmanual "USB Ethernet" 169.254.0.10 255.255.255.0
+
+		Start_SMB_Service
+
+    #normal exit
+    exit 0
+	else
+		echo "[`date +'%Y-%m-%d %H:%M:%S'`] Begin to install ${APP_NAME}." >> ${LOGFILE} 
+	fi
+	
+	Install_App
+
+	sudo networksetup -setmanual "USB Ethernet" 169.254.0.10 255.255.255.0
+
+	Start_SMB_Service
+	
+	#log
+	echo "[`date +'%Y-%m-%d %H:%M:%S'`] Install ${APP_NAME} successful." >> ${LOGFILE}
+}
+Main

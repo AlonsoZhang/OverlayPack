@@ -16,14 +16,12 @@
     [self registerForDraggedTypes:@[NSFilenamesPboardType]];
 }
 
-// Stop the NSTableView implementation getting in the way
+// Stop the NSView implementation getting in the way
 - (NSDragOperation)draggingUpdated:(id <NSDraggingInfo>)sender {
     return [self draggingEntered:sender];
 }
 
-#pragma GCC diagnostic ignored "-Wundeclared-selector"
 - (BOOL)performDragOperation:(id < NSDraggingInfo >)sender {
-    NSLog(@"performDragOperation");
     NSPasteboard *pboard = [sender draggingPasteboard];
     NSArray *filenames = [pboard propertyListForType:NSFilenamesPboardType];
     [[self delegate] dragShowStation:filenames];
