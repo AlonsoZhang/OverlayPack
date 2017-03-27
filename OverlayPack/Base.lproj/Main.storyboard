@@ -765,7 +765,7 @@
                                     <autoresizingMask key="autoresizingMask"/>
                                 </tableHeaderView>
                             </scrollView>
-                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="5K9-xC-KKw">
+                            <button toolTip="Pack overlay" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="5K9-xC-KKw">
                                 <rect key="frame" x="285" y="145" width="50" height="50"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="50" id="d3X-4N-yp4"/>
@@ -779,7 +779,7 @@
                                     <action selector="package:" target="XfG-lQ-9wD" id="agw-Cw-3yv"/>
                                 </connections>
                             </button>
-                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="6Zm-UQ-TRQ">
+                            <button toolTip="Upload" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="6Zm-UQ-TRQ">
                                 <rect key="frame" x="400" y="140" width="60" height="60"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="60" id="VU5-nf-OVi"/>
@@ -902,6 +902,14 @@
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
                             </scrollView>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="4sW-yk-EZK">
+                                <rect key="frame" x="254" y="14" width="228" height="17"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" id="WsP-Nz-0sq">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
                         </subviews>
                         <constraints>
                             <constraint firstItem="TTe-F6-9gD" firstAttribute="top" secondItem="RJh-W2-Nad" secondAttribute="bottom" constant="30" id="5eo-OQ-xjp"/>
@@ -917,13 +925,16 @@
                             <constraint firstItem="hLQ-AM-bZC" firstAttribute="top" secondItem="mNB-dE-52t" secondAttribute="bottom" constant="30" id="QQp-G2-baa"/>
                             <constraint firstAttribute="bottom" secondItem="wsK-GH-mFx" secondAttribute="bottom" constant="10" id="TfM-CV-i3J"/>
                             <constraint firstItem="TTe-F6-9gD" firstAttribute="leading" secondItem="hLQ-AM-bZC" secondAttribute="leading" id="U07-6f-Isy"/>
+                            <constraint firstItem="4sW-yk-EZK" firstAttribute="leading" secondItem="vhq-n7-KXb" secondAttribute="leading" id="Uae-Po-cwq"/>
                             <constraint firstItem="DDK-kc-5WK" firstAttribute="leading" secondItem="hDl-ud-9My" secondAttribute="trailing" id="XSN-av-9cC"/>
                             <constraint firstItem="5K9-xC-KKw" firstAttribute="centerY" secondItem="6Zm-UQ-TRQ" secondAttribute="centerY" id="Xfn-Ag-hwp"/>
+                            <constraint firstItem="4sW-yk-EZK" firstAttribute="centerY" secondItem="wsK-GH-mFx" secondAttribute="centerY" id="Xrm-ZY-t1l"/>
                             <constraint firstAttribute="trailing" secondItem="DDK-kc-5WK" secondAttribute="trailing" id="c5s-ao-wcg"/>
                             <constraint firstItem="mNB-dE-52t" firstAttribute="top" secondItem="DDK-kc-5WK" secondAttribute="bottom" constant="30" id="dLy-0y-fbg"/>
                             <constraint firstItem="hDl-ud-9My" firstAttribute="leading" secondItem="m2S-Jp-Qdl" secondAttribute="leading" constant="20" id="eUj-2f-wuz"/>
                             <constraint firstItem="66X-ri-Zgn" firstAttribute="leading" secondItem="TTe-F6-9gD" secondAttribute="trailing" constant="10" id="f5F-CF-lzH"/>
                             <constraint firstAttribute="trailing" secondItem="kIq-bf-D3a" secondAttribute="trailing" constant="20" id="heO-A3-Yd3"/>
+                            <constraint firstAttribute="trailing" secondItem="4sW-yk-EZK" secondAttribute="trailing" constant="20" id="mxq-qQ-AQL"/>
                             <constraint firstItem="DDK-kc-5WK" firstAttribute="top" secondItem="m2S-Jp-Qdl" secondAttribute="top" constant="10" id="nUe-IM-b0z"/>
                             <constraint firstItem="hLQ-AM-bZC" firstAttribute="leading" secondItem="mNB-dE-52t" secondAttribute="leading" id="pyY-Vh-u5H"/>
                             <constraint firstAttribute="trailing" secondItem="JsC-ly-8kP" secondAttribute="trailing" constant="40" id="sIh-X4-BiM"/>
@@ -938,11 +949,14 @@
                     </view>
                     <connections>
                         <outlet property="dataLabel" destination="RJh-W2-Nad" id="p1K-Xx-cN1"/>
+                        <outlet property="package" destination="5K9-xC-KKw" id="zWi-VP-sDr"/>
                         <outlet property="productName" destination="JsC-ly-8kP" id="Bp4-7Z-oiN"/>
                         <outlet property="randomCode" destination="66X-ri-Zgn" id="gJv-Cs-m9M"/>
                         <outlet property="selectbutton" destination="wsK-GH-mFx" id="fjl-yX-6Qt"/>
                         <outlet property="showTextView" destination="vhq-n7-KXb" id="c0H-IE-jhz"/>
                         <outlet property="stationtv" destination="JCs-nH-JjD" id="THw-0Y-YqY"/>
+                        <outlet property="upload" destination="6Zm-UQ-TRQ" id="cCY-Zb-FJU"/>
+                        <outlet property="verisonLabel" destination="4sW-yk-EZK" id="1Ao-eK-IAw"/>
                         <outlet property="viewDropper" destination="m2S-Jp-Qdl" id="gZJ-It-Cvi"/>
                     </connections>
                 </viewController>

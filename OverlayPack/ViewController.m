@@ -70,6 +70,7 @@
                 }else if ([[mainplist objectForKey:@"DoDebug"]boolValue] == YES){
                     [self ShowMessage:@"DoDebug flag in main.plist is wrong!" Error:true];
                 }else{
+                    self.verisonLabel.stringValue = [NSString stringWithFormat:@"%@: %@",dealdata[dealdata.count-1],[mainplist objectForKey:@"UpdateTime"]];
                     NSDictionary *stationtype = [mainplist objectForKey:@"StationType"];
                     for (NSString * stationname in stationtype) {
                         for (NSURL *stationplisturl in contents) {
@@ -176,6 +177,8 @@
 }
 
 - (IBAction)package:(NSButton *)sender {
+    [self.package setEnabled:false];
+    [self.upload setEnabled:false];
     NSMutableArray *choosenStation = [[NSMutableArray alloc]init];
     for (NSDictionary *stationname in StationArray) {
         if ([[stationname objectForKey:@"check"] isEqualToString:@"1"]) {
@@ -229,6 +232,8 @@
     }else{
         [self ShowMessage:@"Please choose one more station!" Error:true];
     }
+    [self.package setEnabled:true];
+    [self.upload setEnabled:true];
 }
 
 - (NSString *)fit:(NSString *)path{
@@ -240,13 +245,25 @@
     if (![self.randomCode.stringValue isEqualToString:@""]) {
         NSString *randomfolderpath = [NSString stringWithFormat:@"%@/%@",[desktoppaths objectAtIndex:0],self.randomCode.stringValue];
         if ([randomfolderfm fileExistsAtPath:randomfolderpath]) {
+            [self.package setEnabled:false];
+            [self.upload setEnabled:false];
+            [self ShowMessage:@"Waiting for upload..." Error:false];
             //将 randomfolder 压缩
             [self RunCMD:[NSString stringWithFormat:@"ditto -cVvk --keepParent %@/ %@.zip",randomfolderpath,randomfolderpath]];
             
             //上传 zip 到 server
-            
+            UploadFile *UPtoWEB = [[UploadFile alloc]init];
+            NSString * returnmsg = [UPtoWEB UploadFileWithURL:@"http://10.42.222.70/AEOverlay/upload_file.php" FileName:[NSString stringWithFormat:@"%@.zip",self.randomCode.stringValue] FilePath:[NSString stringWithFormat:@"%@.zip",randomfolderpath]];
+            if ([returnmsg length] == 0) {
+                [self ShowMessage:@"No response for upload!" Error:true];
+            }else{
+                [self ShowMessage:returnmsg Error:false];
+            }
+
             //删除 randomfolder
-            //[self RunCMD:[NSString stringWithFormat:@"rm -rf %@.zip",randomfolderpath]];
+            [self RunCMD:[NSString stringWithFormat:@"rm -rf %@.zip",randomfolderpath]];
+            [self.package setEnabled:true];
+            [self.upload setEnabled:true];
         }else{
             [self ShowMessage:[NSString stringWithFormat:@"%@ folder isn't on the desktop!",self.randomCode.stringValue] Error:true];
         }

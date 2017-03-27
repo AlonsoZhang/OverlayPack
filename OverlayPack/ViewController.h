@@ -8,6 +8,7 @@
 
 #import <Cocoa/Cocoa.h>
 #import "ViewDropper.h"
+#import "UploadFile.h"
 
 @interface ViewController : NSViewController<DragShowStationDelegate>{
     NSFileManager *randomfolderfm;
@@ -22,7 +23,12 @@
 @property (weak) IBOutlet NSTextField *productName;
 @property (weak) IBOutlet NSTextField *dataLabel;
 @property (weak) IBOutlet NSTextField *randomCode;
+@property (weak) IBOutlet NSTextField *verisonLabel;
+
 @property (unsafe_unretained) IBOutlet NSTextView *showTextView;
+
+@property (weak) IBOutlet NSButton *upload;
+@property (weak) IBOutlet NSButton *package;
 
 - (IBAction)package:(NSButton *)sender;
 - (IBAction)upload:(NSButton *)sender;
