@@ -61,29 +61,38 @@
         {
             if ([[fileURL absoluteString]containsString:@"main.plist"] ) {
                 NSMutableDictionary *mainplist = [[NSMutableDictionary alloc] initWithContentsOfFile:[[fileURL absoluteString]substringFromIndex:7]];
-                NSDictionary *stationtype = [mainplist objectForKey:@"StationType"];
-                for (NSString * stationname in stationtype) {
-                    for (NSURL *stationplisturl in contents) {
-                        if ([[stationplisturl absoluteString]containsString:[stationtype objectForKey:stationname]])
-                        {
-                            NSMutableDictionary *stationplist = [[NSMutableDictionary alloc] initWithContentsOfFile:[[stationplisturl absoluteString]substringFromIndex:7]];
-                            NSString *version = [stationplist objectForKey:@"Version"];
-                            if (version) {
-                                NSMutableDictionary * existStation = [NSMutableDictionary dictionaryWithObjects:[NSArray arrayWithObjects:@"0",[NSString stringWithFormat:@"%@_v%@",stationname,version], nil] forKeys:[NSArray arrayWithObjects:@"check",@"title",nil]];
-                                [StationArray addObject:existStation];
+                
+                //check sfcs/uppdca/DoDebug
+                if ([[mainplist objectForKey:@"sfcs"]boolValue] == NO) {
+                    [self ShowMessage:@"sfcs flag in main.plist is wrong!" Error:true];
+                }else if ([[mainplist objectForKey:@"uppdca"]boolValue] == NO){
+                    [self ShowMessage:@"uppdca flag in main.plist is wrong!" Error:true];
+                }else if ([[mainplist objectForKey:@"DoDebug"]boolValue] == YES){
+                    [self ShowMessage:@"DoDebug flag in main.plist is wrong!" Error:true];
+                }else{
+                    NSDictionary *stationtype = [mainplist objectForKey:@"StationType"];
+                    for (NSString * stationname in stationtype) {
+                        for (NSURL *stationplisturl in contents) {
+                            if ([[stationplisturl absoluteString]containsString:[stationtype objectForKey:stationname]])
+                            {
+                                NSMutableDictionary *stationplist = [[NSMutableDictionary alloc] initWithContentsOfFile:[[stationplisturl absoluteString]substringFromIndex:7]];
+                                NSString *version = [stationplist objectForKey:@"Version"];
+                                if (version) {
+                                    NSMutableDictionary * existStation = [NSMutableDictionary dictionaryWithObjects:[NSArray arrayWithObjects:@"0",stationname,[NSString stringWithFormat:@"V%@",version], nil] forKeys:[NSArray arrayWithObjects:@"check",@"title",@"verison",nil]];
+                                    [StationArray addObject:existStation];
+                                }
                             }
                         }
                     }
+                    NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"title" ascending:YES];
+                    NSArray *sortDescriptors = [NSArray arrayWithObject:sortDescriptor];
+                    NSArray *sortedArray = [StationArray sortedArrayUsingDescriptors:sortDescriptors];
+                    StationArray = [sortedArray mutableCopy];
+                    if ([StationArray count] == 0) {
+                        [self ShowMessage:@"No main.plist in this file!" Error:true];
+                    }
                 }
-                
-                NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"title" ascending:YES];
-                NSArray *sortDescriptors = [NSArray arrayWithObject:sortDescriptor];
-                NSArray *sortedArray = [StationArray sortedArrayUsingDescriptors:sortDescriptors];
-                StationArray = [sortedArray mutableCopy];
             }
-        }
-        if ([StationArray count] == 0) {
-            [self ShowMessage:@"No main.plist in this file!" Error:true];
         }
         [self.stationtv reloadData];
     }
@@ -183,11 +192,11 @@
         }
         
         //隐藏 contents 文件夹
-        [self RunCMD:[NSString stringWithFormat:@"chflags hidden %@/contents",appPath]];
+        //[self RunCMD:[NSString stringWithFormat:@"chflags hidden %@/contents",appPath]];
         
         float i = 0;
         for (NSDictionary *needpackage in choosenStation) {
-            NSString *packagename = [NSString stringWithFormat:@"%@_%@ %@",self.dataLabel.stringValue,self.productName.stringValue,[[needpackage objectForKey:@"title"]lowercaseString]];
+            NSString *packagename = [NSString stringWithFormat:@"%@_%@ %@_%@",self.dataLabel.stringValue,self.productName.stringValue,[[needpackage objectForKey:@"title"]lowercaseString],[needpackage objectForKey:@"verison"]];
             NSLog(@"%@",packagename);
             
             //创建 overlay 单独文件夹
@@ -237,7 +246,7 @@
             //上传 zip 到 server
             
             //删除 randomfolder
-            [self RunCMD:[NSString stringWithFormat:@"rm -rf %@.zip",randomfolderpath]];
+            //[self RunCMD:[NSString stringWithFormat:@"rm -rf %@.zip",randomfolderpath]];
         }else{
             [self ShowMessage:[NSString stringWithFormat:@"%@ folder isn't on the desktop!",self.randomCode.stringValue] Error:true];
         }
