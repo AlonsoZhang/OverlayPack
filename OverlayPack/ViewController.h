@@ -11,11 +11,15 @@
 #import "UploadFile.h"
 
 @interface ViewController : NSViewController<DragShowStationDelegate>{
-    NSFileManager *randomfolderfm;
+    NSFileManager *overlayfm;
     NSString *appPath;
     NSArray *desktoppaths;
     NSMutableArray *StationArray;
     BOOL checked;
+    NSMutableDictionary *Stations;
+    NSString *AElimitsName;
+    NSMutableDictionary *mainplist;
+    NSArray *contents;
 }
 @property (weak) IBOutlet NSButton *selectbutton;
 @property (strong) IBOutlet ViewDropper *viewDropper;
@@ -24,16 +28,18 @@
 @property (weak) IBOutlet NSTextField *dataLabel;
 @property (weak) IBOutlet NSTextField *randomCode;
 @property (weak) IBOutlet NSTextField *verisonLabel;
-
 @property (unsafe_unretained) IBOutlet NSTextView *showTextView;
-
+@property (strong) IBOutlet NSPopUpButton *AELimitsList;
 @property (weak) IBOutlet NSButton *upload;
 @property (weak) IBOutlet NSButton *package;
+@property (weak) IBOutlet NSButton *compare;
+@property (weak) IBOutlet NSImageView *loadingImage;
 
 - (IBAction)package:(NSButton *)sender;
 - (IBAction)upload:(NSButton *)sender;
+- (IBAction)compare:(NSButton *)sender;
 - (IBAction)selectall:(NSButton *)sender;
-
+- (IBAction)LoadAElimist:(id)sender;
 
 @end
 

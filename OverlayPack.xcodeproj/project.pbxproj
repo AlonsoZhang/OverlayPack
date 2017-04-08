@@ -12,9 +12,10 @@
 		E2DEDB351E8368BE009E0416 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = E2DEDB341E8368BE009E0416 /* AppDelegate.m */; };
 		E2DEDB381E8368BE009E0416 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = E2DEDB371E8368BE009E0416 /* main.m */; };
 		E2DEDB3B1E8368BE009E0416 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = E2DEDB3A1E8368BE009E0416 /* ViewController.m */; };
-		E2DEDB3D1E8368BE009E0416 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E2DEDB3C1E8368BE009E0416 /* Assets.xcassets */; };
 		E2DEDB401E8368BE009E0416 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E2DEDB3E1E8368BE009E0416 /* Main.storyboard */; };
 		E2DEDB4C1E83B341009E0416 /* ViewDropper.m in Sources */ = {isa = PBXBuildFile; fileRef = E2DEDB4B1E83B341009E0416 /* ViewDropper.m */; };
+		E2ED72251E98B1B50022B2C1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E2ED721F1E98B1B50022B2C1 /* Assets.xcassets */; };
+		E2ED722A1E98B2530022B2C1 /* loading.gif in Resources */ = {isa = PBXBuildFile; fileRef = E2ED72291E98B2530022B2C1 /* loading.gif */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,11 +28,12 @@
 		E2DEDB371E8368BE009E0416 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		E2DEDB391E8368BE009E0416 /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		E2DEDB3A1E8368BE009E0416 /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
-		E2DEDB3C1E8368BE009E0416 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		E2DEDB3F1E8368BE009E0416 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		E2DEDB411E8368BE009E0416 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E2DEDB4A1E83B341009E0416 /* ViewDropper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewDropper.h; sourceTree = "<group>"; };
 		E2DEDB4B1E83B341009E0416 /* ViewDropper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ViewDropper.m; sourceTree = "<group>"; };
+		E2ED721F1E98B1B50022B2C1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		E2ED72291E98B2530022B2C1 /* loading.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = loading.gif; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,6 +75,8 @@
 				E2DEDB4B1E83B341009E0416 /* ViewDropper.m */,
 				E28C44CD1E88E14200FDFFDA /* UploadFile.h */,
 				E28C44CE1E88E14200FDFFDA /* UploadFile.m */,
+				E2ED72291E98B2530022B2C1 /* loading.gif */,
+				E2ED721F1E98B1B50022B2C1 /* Assets.xcassets */,
 				E27355831E854B6600DADE26 /* overlay */,
 				E2DEDB361E8368BE009E0416 /* Supporting Files */,
 			);
@@ -82,7 +86,6 @@
 		E2DEDB361E8368BE009E0416 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				E2DEDB3C1E8368BE009E0416 /* Assets.xcassets */,
 				E2DEDB411E8368BE009E0416 /* Info.plist */,
 				E2DEDB371E8368BE009E0416 /* main.m */,
 			);
@@ -149,7 +152,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				E27355841E854B6600DADE26 /* overlay in Resources */,
-				E2DEDB3D1E8368BE009E0416 /* Assets.xcassets in Resources */,
+				E2ED722A1E98B2530022B2C1 /* loading.gif in Resources */,
+				E2ED72251E98B1B50022B2C1 /* Assets.xcassets in Resources */,
 				E2DEDB401E8368BE009E0416 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -223,7 +227,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -264,7 +268,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
 			};
