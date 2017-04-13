@@ -16,10 +16,13 @@
     NSArray *desktoppaths;
     NSMutableArray *StationArray;
     BOOL checked;
+    BOOL comapred;
     NSMutableDictionary *Stations;
     NSString *AElimitsName;
     NSMutableDictionary *mainplist;
     NSArray *contents;
+    NSMutableArray *compareResultArray;
+    dispatch_queue_t UserQueue;
 }
 @property (weak) IBOutlet NSButton *selectbutton;
 @property (strong) IBOutlet ViewDropper *viewDropper;
@@ -39,7 +42,6 @@
 - (IBAction)upload:(NSButton *)sender;
 - (IBAction)compare:(NSButton *)sender;
 - (IBAction)selectall:(NSButton *)sender;
-- (IBAction)LoadAElimist:(id)sender;
 
 @end
 

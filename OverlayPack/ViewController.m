@@ -8,7 +8,7 @@
 
 #import "ViewController.h"
 
-
+#define ServerURL @"http://10.42.222.70/AEOverlay"
 
 @implementation ViewController
 
@@ -19,37 +19,29 @@
     desktoppaths = NSSearchPathForDirectoriesInDomains(NSDesktopDirectory, NSUserDomainMask, YES);
     self.viewDropper.delegate = self;
     Stations =  [[NSMutableDictionary alloc]init];
-    
-    
-    NSDictionary *List = [self PostURL:@"http://10.42.222.70/AEOverlay/D21AELimits/getlist.php" Cookie:@"" Postbody:@""];
-    //[self.AELimitsList addItemWithTitle:@"--Please Choose AE Limits--"];
+    NSDictionary *List = [self PostURL:[NSString stringWithFormat:@"%@/D21AELimits/getlist.php",ServerURL] Cookie:@"" Postbody:@""];
+    if (!List) {
+        [self ShowMessage:@"Fail to connect server!" Error:true];
+    }
     [self.AELimitsList addItemsWithTitles:[List objectForKey:@"list"]];
-    
     [self.AELimitsList selectItem:self.AELimitsList.lastItem];
-    //    [self LoadAElimist:nil];
+    UserQueue = dispatch_queue_create(NULL, DISPATCH_QUEUE_SERIAL);
 }
-
 
 - (NSMutableDictionary*)PostURL:(NSString *)URL Cookie:(NSString *)Cookie Postbody:(NSString *)BODY
 {
     //第一步，创建URL
     NSURL *url = [NSURL URLWithString:  URL];
     //第二步，创建请求
-    NSMutableURLRequest *request = [[NSMutableURLRequest alloc]initWithURL:url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:30];
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc]initWithURL:url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:15];
     [request setHTTPMethod:@"POST"];//设置请求方式为POST，默认为GET
     [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"content-type"];
     [request setValue:Cookie forHTTPHeaderField:@"Cookie"];
-    
-    
     //设置参数
     NSData *data = [BODY dataUsingEncoding:NSUTF8StringEncoding];
     [request setHTTPBody:data];
-    
     //第三步，连接服务器
     NSData *received = [NSURLConnection sendSynchronousRequest:request returningResponse:nil error:nil];
-    //    NSString *String = [[NSString alloc]initWithData:received encoding: NSUTF8StringEncoding ];
-    //    NSLog(@"%@", String);
-    
     if(received != nil)
     {
         return  [NSJSONSerialization JSONObjectWithData:received options:NSJSONReadingMutableLeaves error:nil];
@@ -116,14 +108,15 @@
                     //self.verisonLabel.stringValue = [NSString stringWithFormat:@"%@: %@",dealdata[dealdata.count-1],[mainplist objectForKey:@"UpdateTime"]];
                     self.verisonLabel.stringValue = [NSString stringWithFormat:@"%@",[mainplist objectForKey:@"UpdateTime"]];
                     NSDictionary *stationtype = [mainplist objectForKey:@"StationType"];
+                    self.selectbutton.stringValue = @"0";
                     for (NSString * stationname in stationtype) {
                         for (NSURL *stationplisturl in contents) {
                             if ([[stationplisturl absoluteString]containsString:[stationtype objectForKey:stationname]])
                             {
                                 NSMutableDictionary *stationplist = [[NSMutableDictionary alloc] initWithContentsOfFile:[[stationplisturl absoluteString]substringFromIndex:7]];
                                 NSString *version = [stationplist objectForKey:@"Version"];
-                                if (version) {
-                                    NSMutableDictionary * existStation = [NSMutableDictionary dictionaryWithObjects:[NSArray arrayWithObjects:@"0",stationname,[NSString stringWithFormat:@"V%@",version], nil] forKeys:[NSArray arrayWithObjects:@"check",@"title",@"verison",nil]];
+                                if (version && ![version isEqualToString:@"NA"]) {
+                                    NSMutableDictionary * existStation = [NSMutableDictionary dictionaryWithObjects:[NSArray arrayWithObjects:@"0",stationname,[[stationtype objectForKey:stationname]substringFromIndex:9],[NSString stringWithFormat:@"V%@",version], nil] forKeys:[NSArray arrayWithObjects:@"check",@"title",@"pdcaname",@"verison",nil]];
                                     [StationArray addObject:existStation];
                                 }
                             }
@@ -223,7 +216,9 @@
 }
 
 - (IBAction)package:(NSButton *)sender {
-    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+    comapred = NO;
+    [self compare:self.compare];
+    dispatch_async(UserQueue, ^{
         [self startloading];
         NSMutableArray *choosenStation = [[NSMutableArray alloc]init];
         for (NSDictionary *stationname in StationArray) {
@@ -232,48 +227,49 @@
             }
         }
         if ([choosenStation count] > 0) {
-            
-            //创建桌面随机数文件夹
-            NSString *randomfolderpath = [NSString stringWithFormat:@"%@/%@",[desktoppaths objectAtIndex:0],self.randomCode.stringValue];
-            if([overlayfm createDirectoryAtPath:randomfolderpath withIntermediateDirectories:false attributes:nil error:nil])
-            {
-                NSLog(@"Creat %@ folder",self.randomCode.stringValue);
-            }
-            
-            //隐藏 contents 文件夹
-            [self RunCMD:[NSString stringWithFormat:@"chflags hidden %@/contents",appPath]];
-            
-            float i = 0;
-            for (NSDictionary *needpackage in choosenStation) {
-                NSString *packagename = [NSString stringWithFormat:@"%@_%@ %@_%@",self.dataLabel.stringValue,self.productName.stringValue,[[needpackage objectForKey:@"title"]lowercaseString],[needpackage objectForKey:@"verison"]];
-                NSLog(@"%@",packagename);
-                
-                //创建 overlay 单独文件夹
-                NSString *overlaypath = [NSString stringWithFormat:@"%@/%@",randomfolderpath,packagename];
-                if([overlayfm createDirectoryAtPath:overlaypath withIntermediateDirectories:false attributes:nil error:nil])
+            if (comapred) {
+                //创建桌面随机数文件夹
+                NSString *randomfolderpath = [NSString stringWithFormat:@"%@/%@",[desktoppaths objectAtIndex:0],self.randomCode.stringValue];
+                if([overlayfm createDirectoryAtPath:randomfolderpath withIntermediateDirectories:false attributes:nil error:nil])
                 {
-                    //显示打包进度
-                    i = i + 100.0/[choosenStation count];
-                    [self ShowMessage:[NSString stringWithFormat:@"Overlay Packing Process: %.0f%%",i] Error:false];
-                    
-                    //将 bundle 中文件移到 overlay 文件夹中
-                    [self RunCMD:[NSString stringWithFormat:@"cp -R %@/ %@",[[NSBundle mainBundle]pathForResource:@"overlay" ofType:nil],[self fit:overlaypath]]];
-                    
-                    //将 overlay app 复制到 /Users/gdlocal/Desktop 中
-                    NSString * desktopPath = [overlaypath stringByAppendingString:@"/Users/gdlocal/Desktop"];
-                    [self RunCMD:[NSString stringWithFormat:@"cp -R %@ %@",appPath,[self fit:desktopPath]]];
-                    
-                    //打包生成 overlay
-                    [self RunCMD:[NSString stringWithFormat:@"ditto -cVvk --keepParent %@/ %@.zip",[self fit:overlaypath],[self fit:overlaypath]]];
-                    
-                    //删除原来 overlay folder
-                    [self RunCMD:[NSString stringWithFormat:@"rm -rf %@",[self fit:overlaypath]]];
+                    NSLog(@"Creat %@ folder",self.randomCode.stringValue);
                 }
-            }
-            
-            //完成后打开文件夹
-            if (i > 99) {
-                [self RunCMD:[NSString stringWithFormat:@"open %@",randomfolderpath]];
+                
+                //隐藏 contents 文件夹
+                [self RunCMD:[NSString stringWithFormat:@"chflags hidden %@/contents",appPath]];
+                
+                float i = 0;
+                for (NSDictionary *needpackage in choosenStation) {
+                    NSString *packagename = [NSString stringWithFormat:@"%@_%@ %@_%@",self.dataLabel.stringValue,self.productName.stringValue,[[needpackage objectForKey:@"title"]lowercaseString],[needpackage objectForKey:@"verison"]];
+                    NSLog(@"%@",packagename);
+                    
+                    //创建 overlay 单独文件夹
+                    NSString *overlaypath = [NSString stringWithFormat:@"%@/%@",randomfolderpath,packagename];
+                    if([overlayfm createDirectoryAtPath:overlaypath withIntermediateDirectories:false attributes:nil error:nil])
+                    {
+                        //显示打包进度
+                        i = i + 100.0/[choosenStation count];
+                        [self ShowMessage:[NSString stringWithFormat:@"Overlay Packing Process: %.0f%%",i] Error:false];
+                        
+                        //将 bundle 中文件移到 overlay 文件夹中
+                        [self RunCMD:[NSString stringWithFormat:@"cp -R %@/ %@",[[NSBundle mainBundle]pathForResource:@"overlay" ofType:nil],[self fit:overlaypath]]];
+                        
+                        //将 overlay app 复制到 /Users/gdlocal/Desktop 中
+                        NSString * desktopPath = [overlaypath stringByAppendingString:@"/Users/gdlocal/Desktop"];
+                        [self RunCMD:[NSString stringWithFormat:@"cp -R %@ %@",appPath,[self fit:desktopPath]]];
+                        
+                        //打包生成 overlay
+                        [self RunCMD:[NSString stringWithFormat:@"ditto -cVvk --keepParent %@/ %@.zip",[self fit:overlaypath],[self fit:overlaypath]]];
+                        
+                        //删除原来 overlay folder
+                        [self RunCMD:[NSString stringWithFormat:@"rm -rf %@",[self fit:overlaypath]]];
+                    }
+                }
+                
+                //完成后打开文件夹
+                if (i > 99) {
+                    [self RunCMD:[NSString stringWithFormat:@"open %@",randomfolderpath]];
+                }
             }
         }else{
             [self ShowMessage:@"Please choose one more station!" Error:true];
@@ -288,7 +284,7 @@
 }
 
 - (IBAction)upload:(NSButton *)sender {
-    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+    dispatch_async(UserQueue, ^{
         [self startloading];
         if (![self.randomCode.stringValue isEqualToString:@""]) {
             NSString *randomfolderpath = [NSString stringWithFormat:@"%@/%@",[desktoppaths objectAtIndex:0],self.randomCode.stringValue];
@@ -301,13 +297,13 @@
                 
                 //上传 zip 到 server
                 UploadFile *UPtoWEB = [[UploadFile alloc]init];
-                NSString * returnmsg = [UPtoWEB UploadFileWithURL:@"http://10.42.222.70/AEOverlay/upload_file.php" FileName:[NSString stringWithFormat:@"%@.zip",self.randomCode.stringValue] FilePath:[NSString stringWithFormat:@"%@.zip",randomfolderpath]];
+                NSString * returnmsg = [UPtoWEB UploadFileWithURL:[NSString stringWithFormat:@"%@/upload_file.php",ServerURL] FileName:[NSString stringWithFormat:@"%@.zip",self.randomCode.stringValue] FilePath:[NSString stringWithFormat:@"%@.zip",randomfolderpath]];
                 if ([returnmsg length] == 0) {
                     [self ShowMessage:@"No response for upload!" Error:true];
                 }else{
                     [self ShowMessage:returnmsg Error:false];
                 }
-                
+
                 //删除 randomfolder
                 [self RunCMD:[NSString stringWithFormat:@"rm -rf %@.zip",randomfolderpath]];
                 [self.package setEnabled:true];
@@ -323,9 +319,11 @@
 }
 
 - (IBAction)compare:(NSButton *)sender {
-    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+    dispatch_async(UserQueue, ^{
         [self startloading];
+        compareResultArray = [[NSMutableArray alloc]init];
         NSMutableArray *choosenStation = [[NSMutableArray alloc]init];
+        NSString *judgelengthinfo = [[NSString alloc]init];
         for (NSDictionary *stationname in StationArray) {
             if ([[stationname objectForKey:@"check"] isEqualToString:@"1"]) {
                 [choosenStation addObject:stationname];
@@ -339,11 +337,52 @@
                         if ([[stationplisturl absoluteString]containsString:chooseStationName])
                         {
                             NSMutableDictionary *stationplist = [[NSMutableDictionary alloc] initWithContentsOfFile:[[stationplisturl absoluteString]substringFromIndex:7]];
-                            NSLog(@"%@",stationplist);
-                            NSLog(@"%@",[Stations objectForKey:chooseStationName]);
+                            NSArray * checkdataarray = [[stationplist objectForKey:@"CodeRelease"]objectForKey:@"CompareAELimits"];
+                            if (checkdataarray) {
+                                for(NSDictionary *checkdataDict in checkdataarray){
+                                    NSArray * checkdata = [[[stationplist objectForKey:@"TestFlow"]objectAtIndex:[[checkdataDict objectForKey:@"ItemIndex"]intValue]]objectForKey:[checkdataDict objectForKey:@"DataName"]];
+                                    if ([checkdata count] >= [[Stations objectForKey:chooseStationName]count]) {
+                                        NSArray * rangedataarray = [checkdata  subarrayWithRange:NSMakeRange([[checkdataDict objectForKey:@"StartIndex"]intValue], [[checkdataDict objectForKey:@"EndIndex"]intValue]-[[checkdataDict objectForKey:@"StartIndex"]intValue]+1)];
+                                        NSMutableArray *comparedataarray = [rangedataarray mutableCopy];
+                                        
+                                        //AAA删除倒数第四个位置上图片名称
+                                        if ([chooseStationName isEqualToString:@"TestSpec_AAA"]) {
+                                            [comparedataarray removeObjectAtIndex:[comparedataarray count]-5];
+                                        }
+                                        
+                                        if ([comparedataarray count] == [[Stations objectForKey:chooseStationName]count]) {
+                                            [self compareAElimits:comparedataarray with:[Stations objectForKey:chooseStationName]station:[chooseStationName substringFromIndex:9]];
+                                        }else
+                                        {
+                                            judgelengthinfo = [NSString stringWithFormat:@"%@\n%@ need compare data count is %lu, AE limits count is %lu, please check again.",judgelengthinfo,chooseStationName,[comparedataarray count],[[Stations objectForKey:chooseStationName]count]];
+                                        }
+                                    }else{
+                                        judgelengthinfo = [NSString stringWithFormat:@"%@\n%@ need compare data count is %lu, AE limits count is %lu." ,judgelengthinfo,chooseStationName,[checkdata count],[[Stations objectForKey:chooseStationName]count]];
+                                    }
+                                }
+                            }else{
+                                judgelengthinfo = [NSString stringWithFormat:@"%@\n%@ compare plist format is wrong!",judgelengthinfo,chooseStationName];
+                            }
                         }
                     }
-                    
+                }
+                judgelengthinfo = [judgelengthinfo stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+                if ([judgelengthinfo length] != 0) {
+                    [self ShowMessage:[NSString stringWithFormat:@"%@",judgelengthinfo] Error:true];
+                    if ([compareResultArray count] > 0) {
+                        [[NSUserDefaults standardUserDefaults]setObject:compareResultArray forKey:@"compare"];
+                        dispatch_async(dispatch_get_main_queue(), ^{
+                            [self performSegueWithIdentifier:@"CompareResult" sender:nil];
+                        });
+                    }
+                }else if ([compareResultArray count] > 0) {
+                    [[NSUserDefaults standardUserDefaults]setObject:compareResultArray forKey:@"compare"];
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        [self performSegueWithIdentifier:@"CompareResult" sender:nil];
+                    });
+                }else{
+                    comapred = YES;
+                    [self ShowMessage:[NSString stringWithFormat:@"Compare with %@, all items are correct!",self.AELimitsList.selectedItem.title] Error:false];
                 }
             }
         }else{
@@ -351,6 +390,27 @@
         }
         [self stoploading];
     });
+}
+
+- (void)compareAElimits:(NSMutableArray *)comparearray with:(NSArray *)specarray station:(NSString *)station{
+    NSArray *itemnamearray = [NSArray arrayWithObjects:@"TestItem",@"ItemType",@"LSpec",@"USpec",@"Units",nil];
+    for (int i = 0; i < [comparearray count]; i++) {
+        BOOL add = NO;
+        NSMutableDictionary *savedic = [[NSMutableDictionary alloc]init];
+        NSMutableDictionary *resultdic = [[NSMutableDictionary alloc]init];
+        for (NSString *itemname in itemnamearray) {
+            [savedic setObject:[comparearray[i] objectForKey:itemname] forKey:itemname];
+            if (![[savedic objectForKey:itemname] isEqualToString:[NSString stringWithFormat:@"%@",[specarray[i] objectForKey:itemname]]]) {
+                resultdic = savedic;
+                [resultdic setObject:[NSString stringWithFormat:@"%@(%@)",[savedic objectForKey:itemname],[specarray[i] objectForKey:itemname]] forKey:itemname];
+                [resultdic setObject:station forKey:@"Station"];
+                add = YES;
+            }
+        }
+        if (add) {
+            [compareResultArray addObject:resultdic];
+        }
+    }
 }
 
 - (void)startloading{
@@ -379,7 +439,7 @@
     AElimitsName = [self.AELimitsList.selectedItem.title substringToIndex:[self.AELimitsList.selectedItem.title length]-4];
     NSString *aelimitspath = [NSString stringWithFormat:@"%@/%@.plist",[desktoppaths objectAtIndex:0],AElimitsName];
     if (![overlayfm fileExistsAtPath:aelimitspath]) {
-        NSMutableDictionary *allStations = [self PostURL:@"http://10.42.222.70/AEOverlay/D21AELimits/index.php" Cookie:@"" Postbody:[NSString stringWithFormat:@"FileName=%@",self.AELimitsList.selectedItem.title]];
+        NSMutableDictionary *allStations = [self PostURL:[NSString stringWithFormat:@"%@/D21AELimits/index.php",ServerURL] Cookie:@"" Postbody:[NSString stringWithFormat:@"FileName=%@",self.AELimitsList.selectedItem.title]];
         [allStations writeToFile:[NSString stringWithFormat:@"%@/%@.plist",[desktoppaths objectAtIndex:0],AElimitsName] atomically:YES];
     }
     Stations = [NSMutableDictionary dictionaryWithContentsOfFile:aelimitspath];
@@ -391,12 +451,4 @@
     }
 }
 
-- (IBAction)LoadAElimist:(id)sender
-{
-    //    Stations =   [self PostURL:@"http://10.42.222.70/AEOverlay/D21AELimits/index.php" Cookie:@"" Postbody:[NSString stringWithFormat:@"FileName=%@",self.AELimitsList.selectedItem.title]];
-    //
-    //    [self ShowMessage:[NSString stringWithFormat:@"Load AElimist:%@ \nCount:%lu",self.AELimitsList.selectedItem.title,(unsigned long)Stations.count] Error: Stations.count==0?true:false ];
-    //    AElimitsName = [self.AELimitsList.selectedItem.title substringToIndex:[self.AELimitsList.selectedItem.title length]-4];
-    //    [Stations writeToFile:[NSString stringWithFormat:@"/Users/alonso/Desktop/%@.plist",AElimitsName] atomically:YES];
-}
 @end
