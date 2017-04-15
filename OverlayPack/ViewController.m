@@ -15,6 +15,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     [[self stationtv]becomeFirstResponder];
+    [self.upload setEnabled:false];
     overlayfm = [NSFileManager defaultManager];
     desktoppaths = NSSearchPathForDirectoriesInDomains(NSDesktopDirectory, NSUserDomainMask, YES);
     self.viewDropper.delegate = self;
@@ -45,6 +46,30 @@
     if(received != nil)
     {
         return  [NSJSONSerialization JSONObjectWithData:received options:NSJSONReadingMutableLeaves error:nil];
+    }
+    else
+    {
+        return nil;
+    }
+}
+
+- (NSString*)Post2URL:(NSString *)URL Cookie:(NSString *)Cookie Postbody:(NSString *)BODY
+{
+    //第一步，创建URL
+    NSURL *url = [NSURL URLWithString:  URL];
+    //第二步，创建请求
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc]initWithURL:url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:15];
+    [request setHTTPMethod:@"POST"];//设置请求方式为POST，默认为GET
+    [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"content-type"];
+    [request setValue:Cookie forHTTPHeaderField:@"Cookie"];
+    //设置参数
+    NSData *data = [BODY dataUsingEncoding:NSUTF8StringEncoding];
+    [request setHTTPBody:data];
+    //第三步，连接服务器
+    NSData *received = [NSURLConnection sendSynchronousRequest:request returningResponse:nil error:nil];
+    if(received != nil)
+    {
+        return  [[NSString alloc]initWithData:received encoding: NSUTF8StringEncoding ];
     }
     else
     {
@@ -109,6 +134,7 @@
                     self.verisonLabel.stringValue = [NSString stringWithFormat:@"%@",[mainplist objectForKey:@"UpdateTime"]];
                     NSDictionary *stationtype = [mainplist objectForKey:@"StationType"];
                     self.selectbutton.stringValue = @"0";
+                    NSString *releasemsg = [[NSString alloc]init];
                     for (NSString * stationname in stationtype) {
                         for (NSURL *stationplisturl in contents) {
                             if ([[stationplisturl absoluteString]containsString:[stationtype objectForKey:stationname]])
@@ -116,8 +142,21 @@
                                 NSMutableDictionary *stationplist = [[NSMutableDictionary alloc] initWithContentsOfFile:[[stationplisturl absoluteString]substringFromIndex:7]];
                                 NSString *version = [stationplist objectForKey:@"Version"];
                                 if (version && ![version isEqualToString:@"NA"]) {
-                                    NSMutableDictionary * existStation = [NSMutableDictionary dictionaryWithObjects:[NSArray arrayWithObjects:@"0",stationname,[[stationtype objectForKey:stationname]substringFromIndex:9],[NSString stringWithFormat:@"V%@",version], nil] forKeys:[NSArray arrayWithObjects:@"check",@"title",@"pdcaname",@"verison",nil]];
-                                    [StationArray addObject:existStation];
+                                    //判断添加release note
+                                    NSString *releasenote = [[[stationplist objectForKey:@"CodeRelease"]objectForKey:@"ReleaseNote"]objectForKey:version];
+                                    if (!releasenote) {
+                                        releasemsg = [NSString stringWithFormat:@"%@\n%@ no release note",releasemsg,stationname];
+                                    }else{
+                                        if (![version isEqualToString:@"0.01"]&&[releasenote rangeOfString:@"version"].location == NSNotFound){
+                                            releasenote = [NSString stringWithFormat:@"%@\n2. Change the version from %.2f to %@.",releasenote,[version floatValue]-0.01,version];
+                                        }
+                                        NSMutableDictionary * existStation = [NSMutableDictionary dictionaryWithObjects:[NSArray arrayWithObjects:@"0",stationname,[[stationtype objectForKey:stationname]substringFromIndex:9],[NSString stringWithFormat:@"V%@",version],releasenote, nil] forKeys:[NSArray arrayWithObjects:@"check",@"title",@"pdcaname",@"verison",@"releasenote",nil]];
+                                        [StationArray addObject:existStation];
+                                    }
+                                    releasemsg = [releasemsg stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+                                    if ([releasemsg length] > 0) {
+                                        [self ShowMessage:releasemsg Error:true];
+                                    }
                                 }
                             }
                         }
@@ -238,9 +277,13 @@
                 //隐藏 contents 文件夹
                 [self RunCMD:[NSString stringWithFormat:@"chflags hidden %@/contents",appPath]];
                 
+                
+                NSMutableArray *releaseArray = [[NSMutableArray alloc]init];
                 float i = 0;
                 for (NSDictionary *needpackage in choosenStation) {
                     NSString *packagename = [NSString stringWithFormat:@"%@_%@ %@_%@",self.dataLabel.stringValue,self.productName.stringValue,[[needpackage objectForKey:@"title"]lowercaseString],[needpackage objectForKey:@"verison"]];
+                    NSDictionary *releaseDict = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:[needpackage objectForKey:@"title"],[needpackage objectForKey:@"verison"],[needpackage objectForKey:@"releasenote"],nil] forKeys:[NSArray arrayWithObjects:@"station",@"version",@"releasenote",nil]];
+                    [releaseArray addObject:releaseDict];
                     NSLog(@"%@",packagename);
                     
                     //创建 overlay 单独文件夹
@@ -269,6 +312,12 @@
                 //完成后打开文件夹
                 if (i > 99) {
                     [self RunCMD:[NSString stringWithFormat:@"open %@",randomfolderpath]];
+                    sendmailDic = [[NSMutableDictionary alloc]init];
+                    [sendmailDic setObject:releaseArray forKey:@"release"];
+                    [sendmailDic setObject:[self.AELimitsList.selectedItem.title substringToIndex:[self.AELimitsList.selectedItem.title length]-4] forKey:@"AELimits"];
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        [self.upload setEnabled:true];
+                    });
                 }
             }
         }else{
@@ -281,41 +330,6 @@
 - (NSString *)fit:(NSString *)path{
     NSString *fitstring = [path stringByReplacingOccurrencesOfString:@" " withString:@"\\\\ "];
     return fitstring;
-}
-
-- (IBAction)upload:(NSButton *)sender {
-    dispatch_async(UserQueue, ^{
-        [self startloading];
-        if (![self.randomCode.stringValue isEqualToString:@""]) {
-            NSString *randomfolderpath = [NSString stringWithFormat:@"%@/%@",[desktoppaths objectAtIndex:0],self.randomCode.stringValue];
-            if ([overlayfm fileExistsAtPath:randomfolderpath]) {
-                [self.package setEnabled:false];
-                [self.upload setEnabled:false];
-                [self ShowMessage:@"Waiting for upload..." Error:false];
-                //将 randomfolder 压缩
-                [self RunCMD:[NSString stringWithFormat:@"ditto -cVvk --keepParent %@/ %@.zip",randomfolderpath,randomfolderpath]];
-                
-                //上传 zip 到 server
-                UploadFile *UPtoWEB = [[UploadFile alloc]init];
-                NSString * returnmsg = [UPtoWEB UploadFileWithURL:[NSString stringWithFormat:@"%@/upload_file.php",ServerURL] FileName:[NSString stringWithFormat:@"%@.zip",self.randomCode.stringValue] FilePath:[NSString stringWithFormat:@"%@.zip",randomfolderpath]];
-                if ([returnmsg length] == 0) {
-                    [self ShowMessage:@"No response for upload!" Error:true];
-                }else{
-                    [self ShowMessage:returnmsg Error:false];
-                }
-
-                //删除 randomfolder
-                [self RunCMD:[NSString stringWithFormat:@"rm -rf %@.zip",randomfolderpath]];
-                [self.package setEnabled:true];
-                [self.upload setEnabled:true];
-            }else{
-                [self ShowMessage:[NSString stringWithFormat:@"%@ folder isn't on the desktop!",self.randomCode.stringValue] Error:true];
-            }
-        }else{
-            [self ShowMessage:@"No random folder on the desktop!" Error:true];
-        }
-        [self stoploading];
-    });
 }
 
 - (IBAction)compare:(NSButton *)sender {
@@ -416,7 +430,6 @@
 - (void)startloading{
     dispatch_async(dispatch_get_main_queue(), ^{
         [self.package setEnabled:false];
-        [self.upload setEnabled:false];
         [self.compare setEnabled:false];
         self.loadingImage.hidden = false;
         self.loadingImage.imageScaling = NSImageScaleAxesIndependently;
@@ -429,7 +442,6 @@
 - (void)stoploading{
     dispatch_async(dispatch_get_main_queue(), ^{
         [self.package setEnabled:true];
-        [self.upload setEnabled:true];
         [self.compare setEnabled:true];
         self.loadingImage.hidden = true;
     });
@@ -449,6 +461,85 @@
     }else{
         return YES;
     }
+}
+
+- (IBAction)upload:(NSButton *)sender {
+    dispatch_async(UserQueue, ^{
+        [self startloading];
+        if (![self.randomCode.stringValue isEqualToString:@""]) {
+            NSString *randomfolderpath = [NSString stringWithFormat:@"%@/%@",[desktoppaths objectAtIndex:0],self.randomCode.stringValue];
+            if ([overlayfm fileExistsAtPath:randomfolderpath]) {
+                [self ShowMessage:@"Waiting for upload..." Error:false];
+                //将 randomfolder 压缩
+                [self RunCMD:[NSString stringWithFormat:@"ditto -cVvk --keepParent %@/ %@.zip",randomfolderpath,randomfolderpath]];
+                
+                //上传 zip 到 server
+                UploadFile *UPtoWEB = [[UploadFile alloc]init];
+                NSString * returnmsg = [UPtoWEB UploadFileWithURL:[NSString stringWithFormat:@"%@/upload_file.php",ServerURL] FileName:[NSString stringWithFormat:@"%@.zip",self.randomCode.stringValue] FilePath:[NSString stringWithFormat:@"%@.zip",randomfolderpath]];
+                if ([returnmsg length] == 0) {
+                    [self ShowMessage:@"No response for upload!" Error:true];
+                }else{
+                    [self ShowMessage:returnmsg Error:false];
+                    NSArray *pathArray = [NSArray arrayWithArray:[returnmsg  componentsSeparatedByString:@"\n"]];
+                    [sendmailDic setObject:pathArray.lastObject forKey:@"download"];
+                    [self stoploading];
+                    [self sendmail];
+                }
+                //删除 randomfolder
+                [self RunCMD:[NSString stringWithFormat:@"rm -rf %@.zip",randomfolderpath]];
+            }else{
+                [self ShowMessage:[NSString stringWithFormat:@"%@ folder isn't on the desktop!",self.randomCode.stringValue] Error:true];
+            }
+        }else{
+            [self ShowMessage:@"No random folder on the desktop!" Error:true];
+        }
+        [self stoploading];
+    });
+}
+
+-(void)sendmail{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        //创建发送邮件alert
+        NSAlert *alert = [[NSAlert alloc] init];
+        [alert addButtonWithTitle:@"Send"];
+        [alert addButtonWithTitle:@"Cancel"];
+        [alert setMessageText:@"Send release note and download address"];
+        NSTextField *input = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 250, 24)];
+        input.placeholderString = @"Input your e-mail address";
+        alert.accessoryView = input;
+        [alert setAlertStyle:NSWarningAlertStyle];
+        NSUInteger action = [alert runModal];
+        //响应window的按钮事件
+        if(action == NSAlertFirstButtonReturn)
+        {
+            [sendmailDic setObject:input.stringValue forKey:@"mail"];
+            NSString *returnmsg = [self Post2URL:[NSString stringWithFormat:@"%@/D21AELimits/SendMail.php",ServerURL] Cookie:@"" Postbody:[NSString stringWithFormat:@"Data=%@",[self DataTOjsonString:sendmailDic]]];
+            if (returnmsg) {
+                [self ShowMessage:[NSString stringWithFormat:@"%@\n\n%@",self.showTextView.string,returnmsg] Error:false];
+            }else{
+                [self ShowMessage:[NSString stringWithFormat:@"%@\n\nError to send mail.",self.showTextView.string] Error:true];
+            }
+        }
+        else if(action == NSAlertSecondButtonReturn )
+        {
+            [self ShowMessage:[NSString stringWithFormat:@"%@\n\nUser cancel send mail.",self.showTextView.string] Error:false];
+        }
+    });
+}
+
+-(NSString*)DataTOjsonString:(id)object
+{
+    NSString *jsonString = nil;
+    NSError *error;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:object
+                                                       options:NSJSONWritingPrettyPrinted // Pass 0 if you don't care about the readability of the generated string
+                                                         error:&error];
+    if (!jsonData) {
+        [self ShowMessage:[NSString stringWithFormat:@"Got an error: %@", error] Error:true];
+    } else {
+        jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+    }
+    return jsonString;
 }
 
 @end

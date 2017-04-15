@@ -23,6 +23,7 @@
     NSArray *contents;
     NSMutableArray *compareResultArray;
     dispatch_queue_t UserQueue;
+    NSMutableDictionary *sendmailDic;
 }
 @property (weak) IBOutlet NSButton *selectbutton;
 @property (strong) IBOutlet ViewDropper *viewDropper;

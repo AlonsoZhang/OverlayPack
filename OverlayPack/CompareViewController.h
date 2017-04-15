@@ -12,9 +12,6 @@
     NSArray *compareArray;
 }
 
-@property (nonatomic, strong) NSArray *numbers;
-@property (nonatomic, strong) NSArray *numberCodes;
-
 @property (weak) IBOutlet NSTableView *comparetableview;
 
 @end
