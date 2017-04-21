@@ -41,7 +41,7 @@
 	<key>DTXcodeBuild</key>
 	<string>8A218a</string>
 	<key>LSMinimumSystemVersion</key>
-	<string>10.12</string>
+	<string>10.10</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2017年 rachel. All rights reserved.</string>
 	<key>NSMainNibFile</key>

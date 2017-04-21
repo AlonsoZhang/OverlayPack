@@ -10,7 +10,7 @@
 		</data>
 		<key>Resources/Base.lproj/MainMenu.nib</key>
 		<data>
-		mzwHdQFcap/kRXBcoDuYVAl0WdY=
+		rOyfRa0KDXuAchb2byc4Ilh1Z+8=
 		</data>
 		<key>Resources/logo.png</key>
 		<data>
@@ -21,6 +21,10 @@
 	<dict>
 		<key>Resources/AppIcon.icns</key>
 		<dict>
+			<key>hash</key>
+			<data>
+			x1Pd3GoYmqJPO8WhaoLREqpOoJU=
+			</data>
 			<key>hash2</key>
 			<data>
 			1zYX8x88glJsdCFGHCqFMmjBlTupckdu9amkfuPZF4c=
@@ -28,13 +32,21 @@
 		</dict>
 		<key>Resources/Base.lproj/MainMenu.nib</key>
 		<dict>
+			<key>hash</key>
+			<data>
+			rOyfRa0KDXuAchb2byc4Ilh1Z+8=
+			</data>
 			<key>hash2</key>
 			<data>
-			wOEg7uUQYeZRNcltfYOE1nVo8bpxFA86hxLcB0JqzhM=
+			7Naaitzk/i+eSiYokiZ0OOl/gpn85FueXxsDp3L93Rw=
 			</data>
 		</dict>
 		<key>Resources/logo.png</key>
 		<dict>
+			<key>hash</key>
+			<data>
+			oarzoNWgwd/gPddvejE4QUmsDxo=
+			</data>
 			<key>hash2</key>
 			<data>
 			Ymkx5dqzp5LdiQcIN9Ef4JNvbOitTVgbZb9R9LXYIhg=

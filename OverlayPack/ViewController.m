@@ -15,7 +15,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     [[self stationtv]becomeFirstResponder];
-    [self.upload setEnabled:false];
+    //[self.upload setEnabled:false];
     overlayfm = [NSFileManager defaultManager];
     desktoppaths = NSSearchPathForDirectoriesInDomains(NSDesktopDirectory, NSUserDomainMask, YES);
     self.viewDropper.delegate = self;
@@ -118,7 +118,6 @@
         {
             if ([[fileURL absoluteString]containsString:@"main.plist"] ) {
                 mainplist = [[NSMutableDictionary alloc] initWithContentsOfFile:[[fileURL absoluteString]substringFromIndex:7]];
-                
                 //check sfcs/uppdca/DoDebug
                 if ([[mainplist objectForKey:@"sfcs"]boolValue] == NO) {
                     [self ShowMessage:@"sfcs flag in main.plist is wrong!" Error:true];
@@ -148,7 +147,11 @@
                                         releasemsg = [NSString stringWithFormat:@"%@\n%@ no release note",releasemsg,stationname];
                                     }else{
                                         if (![version isEqualToString:@"0.01"]&&[releasenote rangeOfString:@"version"].location == NSNotFound){
-                                            releasenote = [NSString stringWithFormat:@"%@\n2. Change the version from %.2f to %@.",releasenote,[version floatValue]-0.01,version];
+                                            if ([releasenote rangeOfString:@"2. "].location == NSNotFound) {
+                                                releasenote = [NSString stringWithFormat:@"%@\n2. Change version from %.2f to %@.",releasenote,[version floatValue]-0.01,version];
+                                            }else{
+                                                releasenote = [NSString stringWithFormat:@"%@\n3. Change version from %.2f to %@.",releasenote,[version floatValue]-0.01,version];
+                                            }
                                         }
                                         NSMutableDictionary * existStation = [NSMutableDictionary dictionaryWithObjects:[NSArray arrayWithObjects:@"0",stationname,[[stationtype objectForKey:stationname]substringFromIndex:9],[NSString stringWithFormat:@"V%@",version],releasenote, nil] forKeys:[NSArray arrayWithObjects:@"check",@"title",@"pdcaname",@"verison",@"releasenote",nil]];
                                         [StationArray addObject:existStation];
@@ -315,9 +318,9 @@
                     sendmailDic = [[NSMutableDictionary alloc]init];
                     [sendmailDic setObject:releaseArray forKey:@"release"];
                     [sendmailDic setObject:[self.AELimitsList.selectedItem.title substringToIndex:[self.AELimitsList.selectedItem.title length]-4] forKey:@"AELimits"];
-                    dispatch_async(dispatch_get_main_queue(), ^{
-                        [self.upload setEnabled:true];
-                    });
+//                    dispatch_async(dispatch_get_main_queue(), ^{
+//                        [self.upload setEnabled:true];
+//                    });
                 }
             }
         }else{
@@ -483,7 +486,9 @@
                     NSArray *pathArray = [NSArray arrayWithArray:[returnmsg  componentsSeparatedByString:@"\n"]];
                     [sendmailDic setObject:pathArray.lastObject forKey:@"download"];
                     [self stoploading];
-                    [self sendmail];
+                    if(sendmailDic){
+                        [self sendmail];
+                    }
                 }
                 //删除 randomfolder
                 [self RunCMD:[NSString stringWithFormat:@"rm -rf %@.zip",randomfolderpath]];
