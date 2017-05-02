@@ -82,14 +82,22 @@
         [self ShowMessage:@"Please only drag one file!" Error:true];
     }else{
         StationArray = [[NSMutableArray alloc] init];
+        [self.stationtv reloadData];
+        [self ShowMessage:@"" Error:false];
         appPath = [[NSString alloc]init];
         appPath = files[0];
         NSArray * dealdata = [appPath componentsSeparatedByString:@"/"];
-        if ([dealdata[dealdata.count-1] containsString:@"_AE"]) {
+        if ([appPath containsString:@" "]) {
+            [self ShowMessage:[NSString stringWithFormat:@"No space in path!!!\n%@",appPath] Error:true];
+            return;
+        }else if ([[dealdata lastObject] containsString:@" "]) {
+            [self ShowMessage:[NSString stringWithFormat:@"No space in app name!!!\n%@",[dealdata lastObject]] Error:true];
+            return;
+        }else if ([[dealdata lastObject] containsString:@"_AE"]) {
             [self ShowMessage:@"Please select the station and click the ZIP icon." Error:false];
             
             //设置 Product Name，为 D21_AE_Mix 中"_"前的代号。
-            NSArray * dealaedata = [dealdata[dealdata.count-1]componentsSeparatedByString:@"_"];
+            NSArray * dealaedata = [[dealdata lastObject]componentsSeparatedByString:@"_"];
             self.productName.stringValue = [dealaedata[0]lowercaseString];
             
             //设置当前日期，格式为8位。
@@ -99,6 +107,9 @@
             
             //生成一个随机数
             self.randomCode.stringValue = [NSString stringWithFormat:@"%d", (arc4random() % 900) + 100];
+            isAE = true;
+        }else if ([[dealdata lastObject] containsString:@".app"]){
+            isAE = false;
         }else{
             [self ShowMessage:@"Please drag correct file!" Error:true];
             return;
@@ -125,18 +136,25 @@
                 }else if ([[mainplist objectForKey:@"uppdca"]boolValue] == NO){
                     [self ShowMessage:@"uppdca flag in main.plist is wrong!" Error:true];
                     return;
-                }else if ([[mainplist objectForKey:@"DoDebug"]boolValue] == YES){
+                }else if (isAE && [[mainplist objectForKey:@"DoDebug"]boolValue] == YES){
                     [self ShowMessage:@"DoDebug flag in main.plist is wrong!" Error:true];
                     return;
-                }else{
-                    //self.verisonLabel.stringValue = [NSString stringWithFormat:@"%@: %@",dealdata[dealdata.count-1],[mainplist objectForKey:@"UpdateTime"]];
-                    self.verisonLabel.stringValue = [NSString stringWithFormat:@"%@",[mainplist objectForKey:@"UpdateTime"]];
+                }else if (!isAE){
+                    [[NSUserDefaults standardUserDefaults]setObject:[[dealdata lastObject]substringToIndex:[[dealdata lastObject]length]-4] forKey:@"APstationname"];
+                    [[NSUserDefaults standardUserDefaults]setObject:[mainplist objectForKey:@"version"] forKey:@"APversion"];
+                    [[NSUserDefaults standardUserDefaults]setObject:appPath forKey:@"appPath"];
+                    [self performSegueWithIdentifier:@"APoverlay" sender:nil];
+                }
+                else{
+                    self.verisonLabel.stringValue = ([mainplist objectForKey:@"UpdateTime"]?[NSString stringWithFormat:@"%@",[mainplist objectForKey:@"UpdateTime"]]:@"");
                     NSDictionary *stationtype = [mainplist objectForKey:@"StationType"];
                     self.selectbutton.stringValue = @"0";
                     NSString *releasemsg = [[NSString alloc]init];
                     for (NSString * stationname in stationtype) {
                         for (NSURL *stationplisturl in contents) {
-                            if ([[stationplisturl absoluteString]containsString:[stationtype objectForKey:stationname]])
+                            NSArray * stationarry = [[stationplisturl absoluteString] componentsSeparatedByString:@"/"];
+                            //NSLog(@"%@",[stationarry lastObject]);
+                            if ([[stationarry lastObject]isEqualToString:[NSString stringWithFormat:@"%@.plist",[stationtype objectForKey:stationname]]])
                             {
                                 NSMutableDictionary *stationplist = [[NSMutableDictionary alloc] initWithContentsOfFile:[[stationplisturl absoluteString]substringFromIndex:7]];
                                 NSString *version = [stationplist objectForKey:@"Version"];
@@ -171,7 +189,7 @@
                 }
             }
         }
-        if ([StationArray count] == 0) {
+        if ([StationArray count] == 0 && isAE) {
             [self ShowMessage:@"No correct main.plist in this file!" Error:true];
         }
         [self.stationtv reloadData];
@@ -351,14 +369,15 @@
                 for (NSDictionary *needpackage in choosenStation) {
                     NSString *chooseStationName = [[mainplist objectForKey:@"StationType"]objectForKey:[needpackage objectForKey:@"title"]];
                     for (NSURL *stationplisturl in contents) {
-                        if ([[stationplisturl absoluteString]containsString:chooseStationName])
+                        NSArray * stationarry = [[stationplisturl absoluteString] componentsSeparatedByString:@"/"];
+                        if ([[stationarry lastObject]isEqualToString:[NSString stringWithFormat:@"%@.plist",chooseStationName]])
                         {
                             NSMutableDictionary *stationplist = [[NSMutableDictionary alloc] initWithContentsOfFile:[[stationplisturl absoluteString]substringFromIndex:7]];
                             NSArray * checkdataarray = [[stationplist objectForKey:@"CodeRelease"]objectForKey:@"CompareAELimits"];
                             if (checkdataarray) {
                                 for(NSDictionary *checkdataDict in checkdataarray){
                                     NSArray * checkdata = [[[stationplist objectForKey:@"TestFlow"]objectAtIndex:[[checkdataDict objectForKey:@"ItemIndex"]intValue]]objectForKey:[checkdataDict objectForKey:@"DataName"]];
-                                    if ([checkdata count] >= [[Stations objectForKey:chooseStationName]count]) {
+                                    if ([checkdata count] >= [[Stations objectForKey:([chooseStationName isEqualToString:@"TestSpec_STOM-OQC"]?@"TestSpec_STOM":chooseStationName)]count]) {
                                         NSArray * rangedataarray = [checkdata  subarrayWithRange:NSMakeRange([[checkdataDict objectForKey:@"StartIndex"]intValue], [[checkdataDict objectForKey:@"EndIndex"]intValue]-[[checkdataDict objectForKey:@"StartIndex"]intValue]+1)];
                                         NSMutableArray *comparedataarray = [rangedataarray mutableCopy];
                                         
@@ -367,8 +386,8 @@
                                             [comparedataarray removeObjectAtIndex:[comparedataarray count]-5];
                                         }
                                         
-                                        if ([comparedataarray count] == [[Stations objectForKey:chooseStationName]count]) {
-                                            [self compareAElimits:comparedataarray with:[Stations objectForKey:chooseStationName]station:[chooseStationName substringFromIndex:9]];
+                                        if ([comparedataarray count] == [[Stations objectForKey:([chooseStationName isEqualToString:@"TestSpec_STOM-OQC"]?@"TestSpec_STOM":chooseStationName)]count]) {
+                                            [self compareAElimits:comparedataarray with:[Stations objectForKey:([chooseStationName isEqualToString:@"TestSpec_STOM-OQC"]?@"TestSpec_STOM":chooseStationName)]station:[chooseStationName substringFromIndex:9]];
                                         }else
                                         {
                                             judgelengthinfo = [NSString stringWithFormat:@"%@\n%@ need compare data count is %lu, AE limits count is %lu, please check again.",judgelengthinfo,chooseStationName,[comparedataarray count],[[Stations objectForKey:chooseStationName]count]];
@@ -434,6 +453,7 @@
     dispatch_async(dispatch_get_main_queue(), ^{
         [self.package setEnabled:false];
         [self.compare setEnabled:false];
+        [self.upload setEnabled:false];
         self.loadingImage.hidden = false;
         self.loadingImage.imageScaling = NSImageScaleAxesIndependently;
         [self.loadingImage setAnimates:YES];
@@ -446,6 +466,7 @@
     dispatch_async(dispatch_get_main_queue(), ^{
         [self.package setEnabled:true];
         [self.compare setEnabled:true];
+        [self.upload setEnabled:true];
         self.loadingImage.hidden = true;
     });
 }

@@ -17,6 +17,7 @@
     NSMutableArray *StationArray;
     BOOL checked;
     BOOL comapred;
+    BOOL isAE;
     NSMutableDictionary *Stations;
     NSString *AElimitsName;
     NSMutableDictionary *mainplist;

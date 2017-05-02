@@ -1,0 +1,46 @@
+#!/bin/sh
+#
+#
+# A script to automatically create a txt file on desktop on system bootup
+
+
+# Suppress the annoying "$1: unbound variable" error when no option
+# was given
+
+
+# Source the common setup functions for startup scripts
+if [ -z $1 ] ; then
+echo "Usage: $0 [start|stop|restart] "
+exit 1
+fi
+
+# Source the common setup functions for startup scripts
+test -r /etc/rc.common || exit 1
+. /etc/rc.common
+
+
+SCRIPT="/Library/Scripts/smbStartUp"
+
+StartService ()
+{
+ConsoleMessage "Start smb server."
+$SCRIPT start > /dev/null 2>&1
+}
+
+StopService ()
+{
+ConsoleMessage "Stopping smb server."
+$SCRIPT stop > /dev/null 2>&1
+}
+
+RestartService ()
+{
+ConsoleMessage "Restarting smb server."
+$SCRIPT restart > /dev/null 2>&1
+}
+
+if test -x $SCRIPT ; then
+RunService "$1"
+else
+ConsoleMessage "Could not find smb startup script!"
+fi

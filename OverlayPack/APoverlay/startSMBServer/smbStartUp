@@ -1,0 +1,15 @@
+#!/bin/sh
+#
+# /Library/StartupItems/StartUpTest/StartUpTest
+#
+# A script to automatically create a txt file on desktop on system bootup
+
+
+# Suppress the annoying "$1: unbound variable" error when no option
+# was given
+
+
+# Source the common setup functions for startup scripts
+
+echo "Start smb server";
+(sudo launchctl load -F /System/Library/LaunchDaemons/com.apple.smbd.plist) &

@@ -1,0 +1,144 @@
+#!/bin/sh
+
+#  This file is used to set up AE station environments after ground hog
+#   1, create AE station workspace folder.
+#   2, set up Ethernet IP address:169.254.0.10, and subnet address:255.255.255.0
+#   3, set share folder
+#   NOTE: this file's path is in the folder "/private/etc/"
+
+LOGFILE="/var/log/installsms.log"
+
+Set_Share_Folder()
+{
+	#start install**********
+	#Create share folder
+    mkdir -p /shared
+    mkdir -p /Users/gdlocal/Public/workspace/tmpImages
+	mkdir -p /Users/gdlocal/Public/workspace/AlarmFiles
+
+	# change mode and hide template folder
+	chmod -R 777 /Users/gdlocal/Desktop
+    chmod -R 777 /shared
+    chmod -R 777 /Users/gdlocal/Public/workspace/tmpImages
+    chmod -R 777 /Users/gdlocal/Public/workspace/AlarmFiles
+	
+	# share Public folder
+    sharing -a /shared
+    sharing -a /Users/gdlocal/Public/workspace/tmpImages
+    sharing -a /Users/gdlocal/Public/workspace/AlarmFiles
+	#sharing -e shared -n "gdlocal's Share Folder"
+	sharing -e shared -n "shared"
+    sharing -e tmpImages -n "tmpImages"
+    sharing -e tmpImages -n "AlarmFiles"
+    echo "\n[`date +'%Y-%m-%d %H:%M:%S'`] Finish Set_Share_Folder" >> ${LOGFILE}
+}
+
+Start_SMB_Service()
+{
+	# copy start SMB server script to scripts folder, change user to root
+	cp /startSMBServer/smbStartUp /Library/Scripts/
+	chown root:wheel /Library/Scripts/smbStartUp 
+	
+	# copy SMB start up item
+	cp -R /startSMBServer/startSmbServer /Library/StartupItems/
+	
+	# start SMB server
+	launchctl load -F /System/Library/LaunchDaemons/com.apple.smbd.plist
+	
+	# pwpolicy -u gdlocal -sethashtypes SMB-NT off
+	pwpolicy -u gdlocal -sethashtypes SMB-NT on
+	dscl . -passwd /Users/gdlocal gdlocal
+
+    echo "\n[`date +'%Y-%m-%d %H:%M:%S'`] Finsh Start_SMB_Service" >> ${LOGFILE}
+}
+
+Set_Special_IP()
+{
+    #modify AE-26/SA-IT-HSG1
+    if grep -q "['\"]STATION_TYPE['\"] : ['\"]AE-26['\"]" /Volumes/OSX/vault/data_collection/test_station_config/gh_station_info.json
+    then sudo networksetup -setmanual "USB Ethernet" 169.254.0.11 255.255.255.0
+    else echo NEXT
+    fi
+    echo "\n[`date +'%Y-%m-%d %H:%M:%S'`] Run in Set_Special_IP" >> ${LOGFILE}
+    #modify AE-27/SA-IT-HSG2
+    if grep -q "['\"]STATION_TYPE['\"] : ['\"]AE-27['\"]" /Volumes/OSX/vault/data_collection/test_station_config/gh_station_info.json
+    then sudo networksetup -setmanual "USB Ethernet" 169.254.0.12 255.255.255.0
+    else echo NEXT
+    fi
+    #modify AE-25/SA-IT-CG
+    if grep -q "['\"]STATION_TYPE['\"] : ['\"]AE-25['\"]" /Volumes/OSX/vault/data_collection/test_station_config/gh_station_info.json
+    then sudo networksetup -setmanual "USB Ethernet" 169.254.0.13 255.255.255.0
+    else echo Next
+    fi
+    #modify AE-37/IT-HSG1
+    if grep -q "['\"]STATION_TYPE['\"] : ['\"]AE-37['\"]" /Volumes/OSX/vault/data_collection/test_station_config/gh_station_info.json
+    then sudo networksetup -setmanual "USB Ethernet" 169.254.0.14 255.255.255.0
+    else echo Next
+    fi
+    #modify AE-38/IT-HSG2
+    if grep -q "['\"]STATION_TYPE['\"] : ['\"]AE-38['\"]" /Volumes/OSX/vault/data_collection/test_station_config/gh_station_info.json
+    then sudo networksetup -setmanual "USB Ethernet" 169.254.0.15 255.255.255.0
+    else echo Next
+    fi
+    #modify AE-36/IT-CG
+    if grep -q "['\"]STATION_TYPE['\"] : ['\"]AE-36['\"]" /Volumes/OSX/vault/data_collection/test_station_config/gh_station_info.json
+    then sudo networksetup -setmanual "USB Ethernet" 169.254.0.16 255.255.255.0
+    else echo Next
+    fi
+    #modify AE-39/IT-4
+    if grep -q "['\"]STATION_TYPE['\"] : ['\"]AE-39['\"]" /Volumes/OSX/vault/data_collection/test_station_config/gh_station_info.json
+    then sudo networksetup -setmanual "USB Ethernet" 169.254.0.17 255.255.255.0
+    else echo Next
+    fi
+    #modify AE-37/IT-HSG1/OQC-IT-1
+    if grep -q "['\"]STATION_TYPE['\"] : ['\"]IT-OQC-1['\"]" /Volumes/OSX/vault/data_collection/test_station_config/gh_station_info.json
+    then sudo networksetup -setmanual "USB Ethernet" 169.254.0.14 255.255.255.0
+    else echo Next
+    fi
+    #modify AE-38/IT-HSG2/OQC-IT-2
+    if grep -q "['\"]STATION_TYPE['\"] : ['\"]IT-OQC-2['\"]" /Volumes/OSX/vault/data_collection/test_station_config/gh_station_info.json
+    then sudo networksetup -setmanual "USB Ethernet" 169.254.0.15 255.255.255.0
+    else echo Next
+    fi
+    #modify AE-36/IT-CG/OQC-IT-3
+    if grep -q "['\"]STATION_TYPE['\"] : ['\"]IT-OQC-3['\"]" /Volumes/OSX/vault/data_collection/test_station_config/gh_station_info.json
+    then sudo networksetup -setmanual "USB Ethernet" 169.254.0.16 255.255.255.0
+    else echo Next
+    fi
+    #modify AE-39/IT-4/OQC-IT-4
+    if grep -q "['\"]STATION_TYPE['\"] : ['\"]IT-OQC-4['\"]" /Volumes/OSX/vault/data_collection/test_station_config/gh_station_info.json
+    then sudo networksetup -setmanual "USB Ethernet" 169.254.0.17 255.255.255.0
+    else echo Next
+    fi
+    #modify OQC-IT-5
+    if grep -q "['\"]STATION_TYPE['\"] : ['\"]IT-OQC-5['\"]" /Volumes/OSX/vault/data_collection/test_station_config/gh_station_info.json
+    then sudo networksetup -setmanual "USB Ethernet" 169.254.0.18 255.255.255.0
+    else echo Next
+    fi
+}
+
+Main()
+{
+	echo "\n[`date +'%Y-%m-%d %H:%M:%S'`] Install script startup." >> ${LOGFILE}
+
+    sudo networksetup -setmanual "USB Ethernet" 169.254.0.10 255.255.255.0
+
+    echo "\n[`date +'%Y-%m-%d %H:%M:%S'`] Finish Set normal IP." >> ${LOGFILE}
+	
+	Set_Share_Folder
+
+    echo "\n[`date +'%Y-%m-%d %H:%M:%S'`] Finish Set_Share_Folder." >> ${LOGFILE}
+
+	Start_SMB_Service
+
+    echo "\n[`date +'%Y-%m-%d %H:%M:%S'`] Finish Start_SMB_Service." >> ${LOGFILE}
+
+    sleep 2
+
+    echo "\n[`date +'%Y-%m-%d %H:%M:%S'`] Start Set_Special_IP." >> ${LOGFILE}
+
+    Set_Special_IP
+
+    echo "\n[`date +'%Y-%m-%d %H:%M:%S'`] Finish Set_Special_IP." >> ${LOGFILE}
+}
+Main

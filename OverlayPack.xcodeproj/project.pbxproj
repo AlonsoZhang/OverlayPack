@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E262B93C1EB087F200B08CEE /* APoverlayViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = E262B93B1EB087F200B08CEE /* APoverlayViewController.m */; };
+		E267E1BC1EB1E34B00D2F11A /* APoverlay in Resources */ = {isa = PBXBuildFile; fileRef = E267E1BB1EB1E34B00D2F11A /* APoverlay */; };
 		E27355841E854B6600DADE26 /* overlay in Resources */ = {isa = PBXBuildFile; fileRef = E27355831E854B6600DADE26 /* overlay */; };
 		E28C44CF1E88E14200FDFFDA /* UploadFile.m in Sources */ = {isa = PBXBuildFile; fileRef = E28C44CE1E88E14200FDFFDA /* UploadFile.m */; };
 		E293EE131E9B2C0100DF1BA8 /* CompareViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = E293EE121E9B2C0100DF1BA8 /* CompareViewController.m */; };
@@ -20,6 +22,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		E262B93A1EB087F200B08CEE /* APoverlayViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APoverlayViewController.h; sourceTree = "<group>"; };
+		E262B93B1EB087F200B08CEE /* APoverlayViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = APoverlayViewController.m; sourceTree = "<group>"; };
+		E267E1BB1EB1E34B00D2F11A /* APoverlay */ = {isa = PBXFileReference; lastKnownFileType = folder; path = APoverlay; sourceTree = "<group>"; };
 		E27355831E854B6600DADE26 /* overlay */ = {isa = PBXFileReference; lastKnownFileType = folder; path = overlay; sourceTree = "<group>"; };
 		E28C44CD1E88E14200FDFFDA /* UploadFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UploadFile.h; sourceTree = "<group>"; };
 		E28C44CE1E88E14200FDFFDA /* UploadFile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UploadFile.m; sourceTree = "<group>"; };
@@ -78,10 +83,13 @@
 				E2DEDB4B1E83B341009E0416 /* ViewDropper.m */,
 				E293EE111E9B2C0100DF1BA8 /* CompareViewController.h */,
 				E293EE121E9B2C0100DF1BA8 /* CompareViewController.m */,
+				E262B93A1EB087F200B08CEE /* APoverlayViewController.h */,
+				E262B93B1EB087F200B08CEE /* APoverlayViewController.m */,
 				E28C44CD1E88E14200FDFFDA /* UploadFile.h */,
 				E28C44CE1E88E14200FDFFDA /* UploadFile.m */,
 				E2ED72291E98B2530022B2C1 /* loading.gif */,
 				E2ED721F1E98B1B50022B2C1 /* Assets.xcassets */,
+				E267E1BB1EB1E34B00D2F11A /* APoverlay */,
 				E27355831E854B6600DADE26 /* overlay */,
 				E2DEDB361E8368BE009E0416 /* Supporting Files */,
 			);
@@ -159,6 +167,7 @@
 				E27355841E854B6600DADE26 /* overlay in Resources */,
 				E2ED722A1E98B2530022B2C1 /* loading.gif in Resources */,
 				E2ED72251E98B1B50022B2C1 /* Assets.xcassets in Resources */,
+				E267E1BC1EB1E34B00D2F11A /* APoverlay in Resources */,
 				E2DEDB401E8368BE009E0416 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -176,6 +185,7 @@
 				E2DEDB3B1E8368BE009E0416 /* ViewController.m in Sources */,
 				E2DEDB381E8368BE009E0416 /* main.m in Sources */,
 				E2DEDB351E8368BE009E0416 /* AppDelegate.m in Sources */,
+				E262B93C1EB087F200B08CEE /* APoverlayViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
