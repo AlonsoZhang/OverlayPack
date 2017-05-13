@@ -130,10 +130,10 @@
             if ([[fileURL absoluteString]containsString:@"main.plist"] ) {
                 mainplist = [[NSMutableDictionary alloc] initWithContentsOfFile:[[fileURL absoluteString]substringFromIndex:7]];
                 //check sfcs/uppdca/DoDebug
-                if ([[mainplist objectForKey:@"sfcs"]boolValue] == NO) {
+                if ([mainplist objectForKey:@"sfcs"] && [[mainplist objectForKey:@"sfcs"]boolValue] == NO) {
                     [self ShowMessage:@"sfcs flag in main.plist is wrong!" Error:true];
                     return;
-                }else if ([[mainplist objectForKey:@"uppdca"]boolValue] == NO){
+                }else if ([mainplist objectForKey:@"uppdca"] && [[mainplist objectForKey:@"uppdca"]boolValue] == NO){
                     [self ShowMessage:@"uppdca flag in main.plist is wrong!" Error:true];
                     return;
                 }else if (isAE && [[mainplist objectForKey:@"DoDebug"]boolValue] == YES){
