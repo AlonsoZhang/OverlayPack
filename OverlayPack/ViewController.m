@@ -322,6 +322,10 @@
                         NSString * desktopPath = [overlaypath stringByAppendingString:@"/Users/gdlocal/Desktop"];
                         [self RunCMD:[NSString stringWithFormat:@"cp -R %@ %@",appPath,[self fit:desktopPath]]];
                         
+                        //将 overlay app 备份到 /Users/gdlocal/Documents 中
+                        NSString * documentsPath = [overlaypath stringByAppendingString:@"/Users/gdlocal/Documents"];
+                        [self RunCMD:[NSString stringWithFormat:@"cp -R %@ %@",appPath,[self fit:documentsPath]]];
+                        
                         //打包生成 overlay
                         [self RunCMD:[NSString stringWithFormat:@"ditto -cVvk --keepParent %@/ %@.zip",[self fit:overlaypath],[self fit:overlaypath]]];
                         
@@ -335,7 +339,7 @@
                     [self RunCMD:[NSString stringWithFormat:@"open %@",randomfolderpath]];
                     sendmailDic = [[NSMutableDictionary alloc]init];
                     [sendmailDic setObject:releaseArray forKey:@"release"];
-                    [sendmailDic setObject:[self.AELimitsList.selectedItem.title substringToIndex:[self.AELimitsList.selectedItem.title length]-4] forKey:@"AELimits"];
+                    [sendmailDic setObject:[self.AELimitsList.selectedItem.title substringToIndex:[self.AELimitsList.selectedItem.title length]-([self.AELimitsList.selectedItem.title containsString:@"xlsx"]? 5:4)] forKey:@"AELimits"];
 //                    dispatch_async(dispatch_get_main_queue(), ^{
 //                        [self.upload setEnabled:true];
 //                    });
@@ -378,6 +382,10 @@
                                 for(NSDictionary *checkdataDict in checkdataarray){
                                     NSArray * checkdata = [[[stationplist objectForKey:@"TestFlow"]objectAtIndex:[[checkdataDict objectForKey:@"ItemIndex"]intValue]]objectForKey:[checkdataDict objectForKey:@"DataName"]];
                                     if ([checkdata count] >= [[Stations objectForKey:([chooseStationName isEqualToString:@"TestSpec_STOM-OQC"]?@"TestSpec_STOM":chooseStationName)]count]) {
+                                        if ([checkdata count] < [[checkdataDict objectForKey:@"EndIndex"]intValue]+1) {
+                                            judgelengthinfo = [NSString stringWithFormat:@"%@\n%@ EndIndex format error." ,judgelengthinfo,chooseStationName];
+                                            break;
+                                        }
                                         NSArray * rangedataarray = [checkdata  subarrayWithRange:NSMakeRange([[checkdataDict objectForKey:@"StartIndex"]intValue], [[checkdataDict objectForKey:@"EndIndex"]intValue]-[[checkdataDict objectForKey:@"StartIndex"]intValue]+1)];
                                         NSMutableArray *comparedataarray = [rangedataarray mutableCopy];
                                         
@@ -392,8 +400,9 @@
                                         {
                                             judgelengthinfo = [NSString stringWithFormat:@"%@\n%@ need compare data count is %lu, AE limits count is %lu, please check again.",judgelengthinfo,chooseStationName,[comparedataarray count],[[Stations objectForKey:chooseStationName]count]];
                                         }
-                                    }else{
-                                        judgelengthinfo = [NSString stringWithFormat:@"%@\n%@ need compare data count is %lu, AE limits count is %lu." ,judgelengthinfo,chooseStationName,[checkdata count],[[Stations objectForKey:chooseStationName]count]];
+                                    }
+                                    else{
+                                        judgelengthinfo = [NSString stringWithFormat:@"%@\n%@ need compare data total count is %lu < AE limits count %lu." ,judgelengthinfo,chooseStationName,[checkdata count],[[Stations objectForKey:chooseStationName]count]];
                                     }
                                 }
                             }else{
@@ -472,7 +481,7 @@
 }
 
 - (BOOL)LoadAElimists{
-    AElimitsName = [self.AELimitsList.selectedItem.title substringToIndex:[self.AELimitsList.selectedItem.title length]-4];
+    AElimitsName = [self.AELimitsList.selectedItem.title substringToIndex:[self.AELimitsList.selectedItem.title length] - ([self.AELimitsList.selectedItem.title containsString:@"xlsx"]? 5:4)];
     NSString *aelimitspath = [NSString stringWithFormat:@"%@/%@.plist",[desktoppaths objectAtIndex:0],AElimitsName];
     if (![overlayfm fileExistsAtPath:aelimitspath]) {
         NSMutableDictionary *allStations = [self PostURL:[NSString stringWithFormat:@"%@/D21AELimits/index.php",ServerURL] Cookie:@"" Postbody:[NSString stringWithFormat:@"FileName=%@",self.AELimitsList.selectedItem.title]];
