@@ -7,7 +7,8 @@
 //
 
 #import "APoverlayViewController.h"
-#define ServerURL @"http://10.42.222.70/AEOverlay"
+#define ServerURL @"http://localhost:8888"
+//#define ServerURL @"http://10.42.222.70/AEOverlay"
 
 @interface APoverlayViewController ()
 

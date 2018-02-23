@@ -8,7 +8,8 @@
 
 #import "ViewController.h"
 
-#define ServerURL @"http://10.42.222.70/AEOverlay"
+#define ServerURL @"http://localhost:8888"
+//#define ServerURL @"http://10.42.222.70/AEOverlay"
 
 @implementation ViewController
 
@@ -278,6 +279,10 @@
 - (IBAction)package:(NSButton *)sender {
     comapred = NO;
     [self compare:self.compare];
+    selectTitle = self.AELimitsList.selectedItem.title;
+    ranCode = self.randomCode.stringValue;
+    NSString *data = self.dataLabel.stringValue;
+    NSString *product =  self.productName.stringValue;
     dispatch_async(UserQueue, ^{
         [self startloading];
         NSMutableArray *choosenStation = [[NSMutableArray alloc]init];
@@ -289,10 +294,10 @@
         if ([choosenStation count] > 0) {
             if (comapred) {
                 //创建桌面随机数文件夹
-                NSString *randomfolderpath = [NSString stringWithFormat:@"%@/%@",[desktoppaths objectAtIndex:0],self.randomCode.stringValue];
+                NSString *randomfolderpath = [NSString stringWithFormat:@"%@/%@",[desktoppaths objectAtIndex:0],ranCode];
                 if([overlayfm createDirectoryAtPath:randomfolderpath withIntermediateDirectories:false attributes:nil error:nil])
                 {
-                    NSLog(@"Creat %@ folder",self.randomCode.stringValue);
+                    NSLog(@"Creat %@ folder",ranCode);
                 }
                 
                 //隐藏 contents 文件夹
@@ -302,7 +307,7 @@
                 NSMutableArray *releaseArray = [[NSMutableArray alloc]init];
                 float i = 0;
                 for (NSDictionary *needpackage in choosenStation) {
-                    NSString *packagename = [NSString stringWithFormat:@"%@_%@ %@_%@",self.dataLabel.stringValue,self.productName.stringValue,[[needpackage objectForKey:@"title"]lowercaseString],[needpackage objectForKey:@"verison"]];
+                    NSString *packagename = [NSString stringWithFormat:@"%@_%@ %@_%@",data,product,[[needpackage objectForKey:@"title"]lowercaseString],[needpackage objectForKey:@"verison"]];
                     NSDictionary *releaseDict = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:[needpackage objectForKey:@"title"],[needpackage objectForKey:@"verison"],[needpackage objectForKey:@"releasenote"],nil] forKeys:[NSArray arrayWithObjects:@"station",@"version",@"releasenote",nil]];
                     [releaseArray addObject:releaseDict];
                     NSLog(@"%@",packagename);
@@ -339,7 +344,7 @@
                     [self RunCMD:[NSString stringWithFormat:@"open %@",randomfolderpath]];
                     sendmailDic = [[NSMutableDictionary alloc]init];
                     [sendmailDic setObject:releaseArray forKey:@"release"];
-                    [sendmailDic setObject:[self.AELimitsList.selectedItem.title substringToIndex:[self.AELimitsList.selectedItem.title length]-([self.AELimitsList.selectedItem.title containsString:@"xlsx"]? 5:4)] forKey:@"AELimits"];
+                    [sendmailDic setObject:[selectTitle substringToIndex:[selectTitle length]-([selectTitle containsString:@"xlsx"]? 5:4)] forKey:@"AELimits"];
 //                    dispatch_async(dispatch_get_main_queue(), ^{
 //                        [self.upload setEnabled:true];
 //                    });
@@ -358,6 +363,7 @@
 }
 
 - (IBAction)compare:(NSButton *)sender {
+    selectTitle = self.AELimitsList.selectedItem.title;
     dispatch_async(UserQueue, ^{
         [self startloading];
         compareResultArray = [[NSMutableArray alloc]init];
@@ -427,7 +433,7 @@
                     });
                 }else{
                     comapred = YES;
-                    [self ShowMessage:[NSString stringWithFormat:@"Compare with %@, all items are correct!",self.AELimitsList.selectedItem.title] Error:false];
+                    [self ShowMessage:[NSString stringWithFormat:@"Compare with %@, all items are correct!",selectTitle] Error:false];
                 }
             }
         }else{
@@ -481,14 +487,14 @@
 }
 
 - (BOOL)LoadAElimists{
-    AElimitsName = [self.AELimitsList.selectedItem.title substringToIndex:[self.AELimitsList.selectedItem.title length] - ([self.AELimitsList.selectedItem.title containsString:@"xlsx"]? 5:4)];
+    AElimitsName = [selectTitle substringToIndex:[selectTitle length] - ([selectTitle containsString:@"xlsx"]? 5:4)];
     NSString *aelimitspath = [NSString stringWithFormat:@"%@/%@.plist",[desktoppaths objectAtIndex:0],AElimitsName];
     if (![overlayfm fileExistsAtPath:aelimitspath]) {
-        NSMutableDictionary *allStations = [self PostURL:[NSString stringWithFormat:@"%@/D21AELimits/index.php",ServerURL] Cookie:@"" Postbody:[NSString stringWithFormat:@"FileName=%@",self.AELimitsList.selectedItem.title]];
+        NSMutableDictionary *allStations = [self PostURL:[NSString stringWithFormat:@"%@/D21AELimits/index.php",ServerURL] Cookie:@"" Postbody:[NSString stringWithFormat:@"FileName=%@",selectTitle]];
         [allStations writeToFile:[NSString stringWithFormat:@"%@/%@.plist",[desktoppaths objectAtIndex:0],AElimitsName] atomically:YES];
     }
     Stations = [NSMutableDictionary dictionaryWithContentsOfFile:aelimitspath];
-    [self ShowMessage:[NSString stringWithFormat:@"Load AElimist:%@ \nCount:%lu",self.AELimitsList.selectedItem.title,(unsigned long)Stations.count] Error: Stations.count==0?true:false ];
+    [self ShowMessage:[NSString stringWithFormat:@"Load AElimist:%@ \nCount:%lu",selectTitle,(unsigned long)Stations.count] Error: Stations.count==0?true:false ];
     if ([Stations count] == 0) {
         return NO;
     }else{
@@ -497,10 +503,11 @@
 }
 
 - (IBAction)upload:(NSButton *)sender {
+    ranCode = self.randomCode.stringValue;
     dispatch_async(UserQueue, ^{
         [self startloading];
-        if (![self.randomCode.stringValue isEqualToString:@""]) {
-            NSString *randomfolderpath = [NSString stringWithFormat:@"%@/%@",[desktoppaths objectAtIndex:0],self.randomCode.stringValue];
+        if (![ranCode isEqualToString:@""]) {
+            NSString *randomfolderpath = [NSString stringWithFormat:@"%@/%@",[desktoppaths objectAtIndex:0],ranCode];
             if ([overlayfm fileExistsAtPath:randomfolderpath]) {
                 [self ShowMessage:@"Waiting for upload..." Error:false];
                 //将 randomfolder 压缩
@@ -508,7 +515,7 @@
                 
                 //上传 zip 到 server
                 UploadFile *UPtoWEB = [[UploadFile alloc]init];
-                NSString * returnmsg = [UPtoWEB UploadFileWithURL:[NSString stringWithFormat:@"%@/upload_file.php",ServerURL] FileName:[NSString stringWithFormat:@"%@.zip",self.randomCode.stringValue] FilePath:[NSString stringWithFormat:@"%@.zip",randomfolderpath]];
+                NSString * returnmsg = [UPtoWEB UploadFileWithURL:[NSString stringWithFormat:@"%@/upload_file.php",ServerURL] FileName:[NSString stringWithFormat:@"%@.zip",ranCode] FilePath:[NSString stringWithFormat:@"%@.zip",randomfolderpath]];
                 if ([returnmsg length] == 0) {
                     [self ShowMessage:@"No response for upload!" Error:true];
                 }else{
@@ -523,7 +530,7 @@
                 //删除 randomfolder
                 [self RunCMD:[NSString stringWithFormat:@"rm -rf %@.zip",randomfolderpath]];
             }else{
-                [self ShowMessage:[NSString stringWithFormat:@"%@ folder isn't on the desktop!",self.randomCode.stringValue] Error:true];
+                [self ShowMessage:[NSString stringWithFormat:@"%@ folder isn't on the desktop!",ranCode] Error:true];
             }
         }else{
             [self ShowMessage:@"No random folder on the desktop!" Error:true];
@@ -548,7 +555,9 @@
         if(action == NSAlertFirstButtonReturn)
         {
             [sendmailDic setObject:input.stringValue forKey:@"mail"];
-            NSString *returnmsg = [self Post2URL:[NSString stringWithFormat:@"%@/D21AELimits/SendMail.php",ServerURL] Cookie:@"" Postbody:[NSString stringWithFormat:@"Data=%@",[self DataTOjsonString:sendmailDic]]];
+            NSString *mailPHPpath = @"OverlayPackMail.php";
+            //mailPHPpath = @"D21AELimits/SendMail.php";
+            NSString *returnmsg = [self Post2URL:[NSString stringWithFormat:@"%@/%@",ServerURL,mailPHPpath] Cookie:@"" Postbody:[NSString stringWithFormat:@"Data=%@",[self DataTOjsonString:sendmailDic]]];
             if (returnmsg) {
                 [self ShowMessage:[NSString stringWithFormat:@"%@\n\n%@",self.showTextView.string,returnmsg] Error:false];
             }else{
