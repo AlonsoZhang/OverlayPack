@@ -41,7 +41,7 @@
 	<key>LSMinimumSystemVersion</key>
 	<string>10.8</string>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright © 2014年 David Jin/WKS/Wistron. All rights reserved.</string>
+	<string>Copyright © 2016年 Alonso. All rights reserved.</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>

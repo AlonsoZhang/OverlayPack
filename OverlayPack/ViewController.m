@@ -276,6 +276,9 @@
     [self.stationtv reloadData];
 }
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wimplicit-retain-self"
+
 - (IBAction)package:(NSButton *)sender {
     comapred = NO;
     [self compare:self.compare];
@@ -586,4 +589,5 @@
     return jsonString;
 }
 
+#pragma clang diagnostic pop
 @end

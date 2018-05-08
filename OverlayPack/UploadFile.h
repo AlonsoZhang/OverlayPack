@@ -2,8 +2,8 @@
 //  UploadFile.h
 //  Upload
 //
-//  Created by MAC on 16/6/2.
-//  Copyright © 2016年 Wistron. All rights reserved.
+//  Created by Alonso on 16/6/2.
+//  Copyright © 2016年 Alonso. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
